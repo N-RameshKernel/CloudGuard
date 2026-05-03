@@ -1,0 +1,67 @@
+{
+  "name": "cloudguard",
+  "version": "1.0.0",
+  "description": "Enterprise-grade multi-cloud security dashboard — zero dependencies, pure HTML/CSS/JS",
+  "main": "index.html",
+  "author": {
+    "name": "N. Ramesh",
+    "email": "ramesh@company.io",
+    "url": "https://github.com/nramesh"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nramesh/cloudguard.git"
+  },
+  "homepage": "https://nramesh.github.io/cloudguard",
+  "bugs": {
+    "url": "https://github.com/nramesh/cloudguard/issues"
+  },
+  "keywords": [
+    "security",
+    "cloud-security",
+    "dashboard",
+    "multi-cloud",
+    "aws",
+    "gcp",
+    "azure",
+    "devsecops",
+    "vulnerability",
+    "compliance",
+    "soc2",
+    "cis",
+    "cspm",
+    "glassmorphism",
+    "dark-mode",
+    "vanilla-js",
+    "zero-dependency"
+  ],
+  "scripts": {
+    "start": "npx serve . --listen 3000",
+    "dev": "npx live-server --port=3000 --open=index.html",
+    "validate": "npx html-validate index.html",
+    "preview": "npx serve . --listen 8080",
+    "deploy:vercel": "npx vercel --prod",
+    "deploy:netlify": "npx netlify-cli deploy --prod --dir .",
+    "docker:build": "docker build -t cloudguard:latest .",
+    "docker:run": "docker run -d -p 8080:80 --name cloudguard cloudguard:latest",
+    "docker:stop": "docker stop cloudguard && docker rm cloudguard",
+    "lint:html": "npx html-validate index.html",
+    "size": "wc -c index.html | awk '{print $1\" bytes\"}'",
+    "lines": "wc -l index.html | awk '{print $1\" lines\"}'"
+  },
+  "devDependencies": {
+    "html-validate": "^8.0.0",
+    "live-server": "^1.2.2",
+    "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions",
+    "last 2 Edge versions"
+  ]
+}

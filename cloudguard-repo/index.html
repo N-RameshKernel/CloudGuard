@@ -1,0 +1,2506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CloudGuard — Multi-Cloud Security Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080C14;
+    --bg2: #0D1220;
+    --bg3: #111827;
+    --bg4: #1a2235;
+    --blue: #3B82F6;
+    --blue-dim: rgba(59,130,246,0.15);
+    --blue-glow: rgba(59,130,246,0.4);
+    --green: #22C55E;
+    --green-dim: rgba(34,197,94,0.12);
+    --amber: #F59E0B;
+    --amber-dim: rgba(245,158,11,0.12);
+    --red: #EF4444;
+    --red-dim: rgba(239,68,68,0.12);
+    --purple: #A855F7;
+    --text: #E2E8F0;
+    --text2: #94A3B8;
+    --text3: #4B5563;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(59,130,246,0.25);
+    --glass: rgba(13,18,32,0.8);
+    --radius: 12px;
+    --sidebar-w: 220px;
+    --sidebar-collapsed: 60px;
+    --nav-h: 56px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── LIGHT MODE ─── */
+  body.light {
+    --bg: #F1F5FB;
+    --bg2: #FFFFFF;
+    --bg3: #F0F4FF;
+    --bg4: #E2E8F0;
+    --text: #0F172A;
+    --text2: #475569;
+    --text3: #94A3B8;
+    --border: rgba(0,0,0,0.09);
+    --border2: rgba(59,130,246,0.35);
+    --blue-dim: rgba(59,130,246,0.1);
+    --green-dim: rgba(34,197,94,0.1);
+    --amber-dim: rgba(245,158,11,0.1);
+    --red-dim: rgba(239,68,68,0.08);
+  }
+  body.light::before {
+    background-image:
+      linear-gradient(rgba(59,130,246,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.05) 1px, transparent 1px);
+  }
+  body.light .terminal,
+  body.light .term-body { background: #0B0F1A; }
+  body.light .log-stream { background: #0B0F1A; }
+  body.light .api-response { background: #0B0F1A; color: #94A3B8; }
+  body.light .code-block { background: #0B0F1A; border-color: rgba(0,0,0,0.15); }
+  body.light .avatar { background: linear-gradient(135deg,#3B82F6,#6366F1); }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── PAGE LOAD ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  .content.active .card {
+    animation: fadeUp 0.3s ease both;
+  }
+  .content.active .card:nth-child(1) { animation-delay: 0.04s; }
+  .content.active .card:nth-child(2) { animation-delay: 0.08s; }
+  .content.active .card:nth-child(3) { animation-delay: 0.12s; }
+  .content.active .card:nth-child(4) { animation-delay: 0.16s; }
+  .content.active .section-header { animation: fadeIn 0.25s ease both; }
+
+  /* ─── GLOW HOVER ─── */
+  .card:hover::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: var(--radius);
+    background: radial-gradient(600px circle at var(--mx,50%) var(--my,50%), rgba(59,130,246,0.06), transparent 40%);
+    pointer-events: none;
+  }
+
+  /* ─── LAYOUT ─── */
+  .app { display: flex; height: 100vh; overflow: hidden; position: relative; z-index: 1; }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    transition: width 0.25s ease;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 10;
+  }
+  .sidebar.collapsed { width: var(--sidebar-collapsed); }
+
+  .sidebar-logo {
+    height: var(--nav-h);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+    white-space: nowrap;
+  }
+  .logo-icon {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--blue), #6366F1);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.5px; }
+  .logo-text span { color: var(--blue); }
+
+  .nav-section { padding: 12px 8px; }
+  .nav-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+    color: var(--text3); text-transform: uppercase;
+    padding: 4px 8px 8px;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 13px; font-weight: 500;
+    transition: all 0.15s;
+    white-space: nowrap;
+    position: relative;
+  }
+  .nav-item:hover { background: var(--bg4); color: var(--text); }
+  .nav-item.active { background: var(--blue-dim); color: var(--blue); }
+  .nav-item.active::before {
+    content: '';
+    position: absolute; left: 0; top: 20%; bottom: 20%;
+    width: 3px; background: var(--blue);
+    border-radius: 0 3px 3px 0; left: -8px;
+  }
+  .nav-icon { width: 18px; height: 18px; flex-shrink: 0; opacity: 0.8; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--red); color: #fff;
+    font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 20px;
+    flex-shrink: 0;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+    padding: 12px 8px;
+  }
+  .collapse-btn {
+    width: 100%; display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px;
+    border: none; background: none; color: var(--text2);
+    cursor: pointer; font-size: 13px; font-family: inherit;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .collapse-btn:hover { background: var(--bg4); color: var(--text); }
+
+  /* ─── MAIN ─── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ─── TOP NAV ─── */
+  .topnav {
+    height: var(--nav-h);
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 20px; gap: 12px;
+    flex-shrink: 0;
+  }
+  .search-box {
+    flex: 1; max-width: 400px;
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 12px;
+    transition: border-color 0.15s;
+  }
+  .search-box:focus-within { border-color: var(--border2); }
+  .search-box input {
+    background: none; border: none; outline: none;
+    color: var(--text); font-size: 13px; font-family: inherit;
+    width: 100%;
+  }
+  .search-box input::placeholder { color: var(--text3); }
+
+  .cloud-selector {
+    display: flex; gap: 4px; background: var(--bg3);
+    border: 1px solid var(--border); border-radius: 8px; padding: 4px;
+  }
+  .cloud-btn {
+    padding: 4px 10px; border-radius: 6px; border: none;
+    background: none; color: var(--text2); font-size: 12px;
+    font-family: inherit; cursor: pointer; font-weight: 500;
+    transition: all 0.15s;
+  }
+  .cloud-btn.active { background: var(--blue-dim); color: var(--blue); }
+  .cloud-btn:hover:not(.active) { color: var(--text); }
+
+  .nav-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text2); transition: all 0.15s;
+    position: relative;
+  }
+  .icon-btn:hover { border-color: var(--border2); color: var(--text); }
+  .icon-btn .dot {
+    position: absolute; top: 6px; right: 6px;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--red); border: 1px solid var(--bg2);
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: linear-gradient(135deg, #3B82F6, #6366F1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+
+  /* ─── CONTENT ─── */
+  .content {
+    flex: 1; overflow-y: auto; padding: 20px;
+    display: none;
+  }
+  .content.active { display: block; }
+
+  /* ─── SECTION HEADER ─── */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .section-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; }
+  .section-sub { color: var(--text2); font-size: 13px; margin-top: 2px; }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card:hover { border-color: var(--border2); box-shadow: 0 0 20px rgba(59,130,246,0.06); }
+  .card-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--text3); margin-bottom: 10px;
+  }
+
+  .grid { display: grid; gap: 14px; }
+  .g2 { grid-template-columns: repeat(2, 1fr); }
+  .g3 { grid-template-columns: repeat(3, 1fr); }
+  .g4 { grid-template-columns: repeat(4, 1fr); }
+  .g-auto { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+  /* ─── STAT CARDS ─── */
+  .stat-value { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; line-height: 1; }
+  .stat-label { font-size: 12px; color: var(--text2); margin-top: 6px; }
+  .stat-delta { font-size: 11px; margin-top: 4px; }
+  .delta-up { color: var(--red); }
+  .delta-down { color: var(--green); }
+
+  /* ─── RISK SCORE ─── */
+  .risk-ring-wrap { display: flex; align-items: center; gap: 20px; }
+  .risk-ring {
+    position: relative; width: 100px; height: 100px; flex-shrink: 0;
+  }
+  .risk-ring svg { transform: rotate(-90deg); }
+  .risk-center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .risk-num { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--amber); }
+  .risk-word { font-size: 9px; font-weight: 600; letter-spacing: 1px; color: var(--text3); text-transform: uppercase; }
+
+  /* ─── SEVERITY BADGE ─── */
+  .badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge-critical { background: var(--red-dim); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .badge-high { background: rgba(245,158,11,0.12); color: var(--amber); border: 1px solid rgba(245,158,11,0.3); }
+  .badge-medium { background: rgba(234,179,8,0.1); color: #EAB308; border: 1px solid rgba(234,179,8,0.3); }
+  .badge-low { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .badge-info { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+
+  /* ─── THREAT TICKER ─── */
+  .ticker-wrap {
+    overflow: hidden; position: relative;
+    background: var(--bg3); border-radius: 8px; padding: 10px 14px;
+    border: 1px solid var(--border);
+  }
+  .ticker-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 0; border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .ticker-item:last-child { border-bottom: none; }
+  .ticker-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .ticker-dot.crit { background: var(--red); box-shadow: 0 0 6px var(--red); animation: pulse 1.5s infinite; }
+  .ticker-dot.warn { background: var(--amber); }
+  .ticker-dot.info { background: var(--blue); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* ─── HEATMAP ─── */
+  .heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 3px;
+    margin-top: 8px;
+  }
+  .hm-cell {
+    aspect-ratio: 1;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .hm-cell:hover { transform: scale(1.3); z-index: 2; }
+
+  /* ─── COMPLIANCE ─── */
+  .compliance-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .compliance-row:last-child { border-bottom: none; }
+  .compliance-bar-wrap { flex: 1; background: var(--bg3); border-radius: 20px; height: 5px; overflow: hidden; }
+  .compliance-bar { height: 100%; border-radius: 20px; transition: width 1s ease; }
+  .compliance-pct { font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; min-width: 36px; text-align: right; }
+
+  /* ─── CLOUD OVERVIEW ─── */
+  .cloud-provider {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px; background: var(--bg3); border-radius: 8px;
+    border: 1px solid var(--border); cursor: pointer;
+    transition: all 0.15s;
+  }
+  .cloud-provider:hover { border-color: var(--border2); }
+  .cloud-logo { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; }
+  .aws-logo { background: linear-gradient(135deg, #FF9900, #FFC400); color: #000; }
+  .gcp-logo { background: linear-gradient(135deg, #4285F4, #34A853); color: #fff; }
+  .az-logo { background: linear-gradient(135deg, #0078D4, #50B4F1); color: #fff; }
+
+  /* ─── VULNERABILITY TABLE ─── */
+  .vtable { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .vtable thead th {
+    text-align: left; padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
+    text-transform: uppercase; color: var(--text3);
+    white-space: nowrap;
+  }
+  .vtable tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+  .vtable tbody tr:hover { background: var(--bg3); }
+  .vtable td { padding: 11px 12px; }
+  .vtable .resource-cell { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--blue); }
+  .vtable .score-cell { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+  /* ─── FILTERS ─── */
+  .filter-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; }
+  .filter-btn {
+    padding: 5px 12px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg2);
+    color: var(--text2); font-size: 12px; font-family: inherit;
+    cursor: pointer; font-weight: 500; transition: all 0.15s;
+  }
+  .filter-btn.active { border-color: var(--blue); background: var(--blue-dim); color: var(--blue); }
+  .filter-btn:hover:not(.active) { color: var(--text); border-color: var(--text3); }
+  select.filter-btn { appearance: none; padding-right: 20px; }
+
+  /* ─── SIDE PANEL ─── */
+  .side-panel {
+    position: fixed; right: 0; top: 0; bottom: 0;
+    width: 460px; background: var(--bg2);
+    border-left: 1px solid var(--border);
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+    z-index: 100; display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .side-panel.open { transform: translateX(0); }
+  .panel-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+    z-index: 99; opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .panel-overlay.show { opacity: 1; pointer-events: all; }
+
+  .panel-header {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .panel-close {
+    margin-left: auto; width: 28px; height: 28px;
+    border: 1px solid var(--border); border-radius: 6px;
+    background: none; color: var(--text2); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .panel-close:hover { color: var(--text); border-color: var(--text3); }
+
+  .panel-tabs { display: flex; border-bottom: 1px solid var(--border); }
+  .panel-tab {
+    padding: 10px 16px; font-size: 13px; font-weight: 500;
+    color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent;
+    transition: all 0.15s; margin-bottom: -1px;
+  }
+  .panel-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+  .panel-tab:hover:not(.active) { color: var(--text); }
+
+  .panel-body { flex: 1; overflow-y: auto; padding: 20px; }
+
+  .panel-section { margin-bottom: 20px; }
+  .panel-section-title { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); margin-bottom: 10px; }
+
+  .code-block {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--green);
+    position: relative; line-height: 1.6;
+    white-space: pre-wrap;
+  }
+  .copy-btn {
+    position: absolute; top: 8px; right: 8px;
+    padding: 3px 8px; border-radius: 5px;
+    border: 1px solid var(--border); background: var(--bg2);
+    color: var(--text2); font-size: 11px; font-family: inherit;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .copy-btn:hover { color: var(--text); border-color: var(--text3); }
+
+  .auto-remediate-btn {
+    width: 100%; padding: 12px;
+    background: linear-gradient(135deg, var(--green), #16A34A);
+    border: none; border-radius: 8px;
+    color: #fff; font-size: 13px; font-weight: 700;
+    font-family: inherit; cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(34,197,94,0.3);
+  }
+  .auto-remediate-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(34,197,94,0.4); }
+
+  /* ─── SCAN SCREEN ─── */
+  .scan-layout { display: grid; grid-template-columns: 320px 1fr; gap: 16px; height: 100%; }
+
+  .scan-config { display: flex; flex-direction: column; gap: 14px; }
+
+  .config-group { }
+  .config-label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); margin-bottom: 8px; }
+  .config-options { display: flex; flex-wrap: wrap; gap: 6px; }
+  .config-chip {
+    padding: 5px 12px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg3);
+    color: var(--text2); font-size: 12px; cursor: pointer;
+    transition: all 0.15s; font-family: inherit;
+  }
+  .config-chip.sel { border-color: var(--blue); background: var(--blue-dim); color: var(--blue); }
+  .config-chip:hover:not(.sel) { color: var(--text); }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+  .toggle-label { font-size: 13px; }
+  .toggle {
+    width: 40px; height: 22px; border-radius: 11px;
+    background: var(--bg3); border: 1px solid var(--border);
+    cursor: pointer; position: relative; transition: all 0.2s;
+  }
+  .toggle.on { background: var(--blue); border-color: var(--blue); }
+  .toggle::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--text2); transition: all 0.2s;
+  }
+  .toggle.on::after { left: calc(100% - 17px); background: #fff; }
+
+  .scan-btn {
+    width: 100%; padding: 12px;
+    background: linear-gradient(135deg, var(--blue), #6366F1);
+    border: none; border-radius: 8px;
+    color: #fff; font-size: 14px; font-weight: 700;
+    font-family: inherit; cursor: pointer; letter-spacing: 0.3px;
+    box-shadow: 0 4px 15px rgba(59,130,246,0.3);
+    transition: all 0.2s;
+  }
+  .scan-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+
+  .scan-progress { display: flex; flex-direction: column; gap: 14px; }
+
+  .pipeline-step {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--bg3);
+    font-size: 13px;
+  }
+  .step-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+  .step-icon.done { background: var(--green-dim); color: var(--green); }
+  .step-icon.running { background: var(--blue-dim); color: var(--blue); animation: spin 1s linear infinite; }
+  .step-icon.pending { background: var(--bg4); color: var(--text3); }
+  .step-icon.failed { background: var(--red-dim); color: var(--red); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .step-info { flex: 1; }
+  .step-name { font-weight: 600; }
+  .step-detail { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  .progress-bar-wrap { background: var(--bg4); border-radius: 20px; height: 4px; margin-top: 4px; }
+  .progress-bar { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--blue), var(--green)); transition: width 0.5s ease; }
+
+  .log-stream {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 14px; font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; height: 200px; overflow-y: auto; line-height: 1.7;
+  }
+  .log-line { }
+  .log-time { color: var(--text3); }
+  .log-ok { color: var(--green); }
+  .log-warn { color: var(--amber); }
+  .log-err { color: var(--red); }
+  .log-info { color: var(--blue); }
+
+  /* ─── REPORTS SCREEN ─── */
+  .chart-area { width: 100%; }
+
+  canvas { display: block; }
+
+  .ai-insight {
+    background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(99,102,241,0.08));
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .ai-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: var(--blue); margin-bottom: 8px;
+  }
+  .ai-text { font-size: 13px; color: var(--text); line-height: 1.6; }
+
+  /* ─── INTEGRATIONS SCREEN ─── */
+  .integration-card {
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .int-header { display: flex; align-items: center; gap: 12px; }
+  .int-logo { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .int-name { font-weight: 700; font-size: 14px; }
+  .int-desc { font-size: 12px; color: var(--text2); }
+  .int-status { margin-left: auto; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+  .status-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); }
+  .status-dot.error { background: var(--red); }
+  .status-dot.idle { background: var(--text3); }
+  .connect-btn {
+    width: 100%; padding: 8px;
+    border-radius: 7px; border: 1px solid var(--border);
+    background: var(--bg3); color: var(--text2);
+    font-size: 12px; font-family: inherit; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .connect-btn.connected { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .connect-btn:hover:not(.connected) { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
+
+  /* ─── PIPELINE VIZ ─── */
+  .pipeline-flow { display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 12px 0; }
+  .flow-node {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    flex-shrink: 0;
+  }
+  .flow-box {
+    padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;
+    white-space: nowrap;
+  }
+  .flow-box.done { background: var(--green-dim); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .flow-box.run { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+  .flow-box.pend { background: var(--bg3); color: var(--text3); border: 1px solid var(--border); }
+  .flow-arrow { color: var(--text3); padding: 0 4px; font-size: 14px; margin-top: -16px; }
+  .flow-time { font-size: 10px; color: var(--text3); font-family: 'JetBrains Mono', monospace; }
+
+  /* ─── CLI SCREEN ─── */
+  .terminal {
+    background: #050810; border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+  }
+  .term-header {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg2);
+  }
+  .term-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .term-label { font-size: 12px; color: var(--text3); margin-left: auto; font-family: 'JetBrains Mono', monospace; }
+  .term-body { padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.8; min-height: 200px; }
+  .term-line { margin-bottom: 2px; }
+  .term-prompt { color: var(--blue); }
+  .term-cmd { color: var(--green); }
+  .term-out { color: var(--text2); }
+  .term-input-line { display: flex; align-items: center; gap: 6px; }
+  .term-input {
+    background: none; border: none; outline: none;
+    color: var(--green); font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; flex: 1;
+  }
+
+  .api-tester { display: flex; flex-direction: column; gap: 12px; }
+  .api-row { display: flex; gap: 8px; }
+  .method-select {
+    padding: 8px 10px; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--bg3);
+    color: var(--green); font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; cursor: pointer; font-weight: 600;
+  }
+  .api-url {
+    flex: 1; padding: 8px 12px; border-radius: 7px;
+    border: 1px solid var(--border); background: var(--bg3);
+    color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    outline: none;
+  }
+  .api-url:focus { border-color: var(--border2); }
+  .send-btn {
+    padding: 8px 16px; border-radius: 7px;
+    border: none; background: var(--blue);
+    color: #fff; font-size: 12px; font-family: inherit; font-weight: 700;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .send-btn:hover { background: #2563EB; }
+
+  .api-response {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--text2); min-height: 100px; line-height: 1.6;
+    white-space: pre-wrap;
+  }
+
+  /* ─── SETTINGS ─── */
+  .settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-row-info .label { font-weight: 600; }
+  .settings-row-info .desc { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  .role-badge {
+    padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .role-admin { background: var(--blue-dim); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+  .role-viewer { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+
+  .api-key-display {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 7px; padding: 7px 10px;
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    color: var(--text2);
+  }
+
+  /* ─── TOAST ─── */
+  .toast-container { position: fixed; top: 70px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    padding: 12px 16px; border-radius: 8px;
+    background: var(--bg2); border: 1px solid var(--border);
+    font-size: 13px; display: flex; align-items: center; gap: 8px;
+    animation: slideIn 0.2s ease, fadeOut 0.3s ease 3s forwards;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .toast.success { border-color: rgba(34,197,94,0.3); }
+  .toast.error { border-color: rgba(239,68,68,0.3); }
+  @keyframes slideIn { from { transform: translateX(100px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+
+  /* ─── SKELETON ─── */
+  .skeleton {
+    background: linear-gradient(90deg, var(--bg3) 25%, var(--bg4) 50%, var(--bg3) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 4px;
+  }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+
+  /* ─── AI COPILOT ─── */
+  .copilot-btn {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    border: none; cursor: pointer; color: #fff; font-size: 20px;
+    box-shadow: 0 4px 20px rgba(59,130,246,0.4);
+    z-index: 200; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .copilot-btn:hover { transform: scale(1.1); box-shadow: 0 6px 28px rgba(59,130,246,0.5); }
+
+  .copilot-panel {
+    position: fixed; bottom: 84px; right: 24px;
+    width: 320px; background: var(--bg2);
+    border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; z-index: 200;
+    transform: scale(0.9) translateY(20px);
+    transform-origin: bottom right;
+    opacity: 0; pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .copilot-panel.show { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+  .copilot-header {
+    padding: 12px 14px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(99,102,241,0.1));
+  }
+  .copilot-title { font-size: 13px; font-weight: 700; }
+  .copilot-messages { padding: 12px; height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .copilot-msg { font-size: 12px; line-height: 1.5; }
+  .copilot-msg.ai { color: var(--blue); background: var(--blue-dim); padding: 8px 10px; border-radius: 8px; }
+  .copilot-msg.user { color: var(--text); text-align: right; }
+  .copilot-input-row { display: flex; gap: 6px; padding: 10px 12px; border-top: 1px solid var(--border); }
+  .copilot-input {
+    flex: 1; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 7px; padding: 6px 10px;
+    color: var(--text); font-size: 12px; font-family: inherit;
+    outline: none;
+  }
+  .copilot-input:focus { border-color: var(--border2); }
+  .copilot-send {
+    width: 30px; height: 30px; border-radius: 7px;
+    border: none; background: var(--blue); color: #fff;
+    cursor: pointer; font-size: 13px; display: flex;
+    align-items: center; justify-content: center;
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 10px; }
+
+  /* ─── MINI CHART (sparkline) ─── */
+  .spark { display: flex; align-items: flex-end; gap: 2px; height: 30px; }
+  .spark-bar { flex: 1; border-radius: 2px 2px 0 0; min-width: 4px; transition: height 0.5s ease; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .sidebar { width: var(--sidebar-collapsed); }
+    .logo-text, .nav-label, .nav-item span, .collapse-btn span { display: none; }
+    .g4 { grid-template-columns: repeat(2, 1fr); }
+    .g3 { grid-template-columns: repeat(2, 1fr); }
+    .scan-layout { grid-template-columns: 1fr; }
+    .side-panel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text"><span>Cloud</span>Guard</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="showScreen('dashboard',this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('scan',this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <span>Scan & Audit</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('vulns',this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Vulnerabilities</span>
+        <span class="nav-badge">23</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Insights</div>
+      <div class="nav-item" onclick="showScreen('reports',this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-4 4 4 4-4"/></svg>
+        <span>Reports</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('integrations',this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h8m-8 6h16"/></svg>
+        <span>Integrations</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Developer</div>
+      <div class="nav-item" onclick="showScreen('cli',this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><polyline points="4,17 10,11 4,5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        <span>CLI / API</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('settings',this)">
+        <svg class="nav-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Settings & IAM</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="collapse-btn" onclick="toggleSidebar()">
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        <span>Collapse</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN ─── -->
+  <div class="main">
+    <!-- TOP NAV -->
+    <nav class="topnav">
+      <div class="search-box">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color:var(--text3);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Search resources, findings, CVEs…">
+      </div>
+      <div class="cloud-selector">
+        <button class="cloud-btn active">All</button>
+        <button class="cloud-btn">AWS</button>
+        <button class="cloud-btn">GCP</button>
+        <button class="cloud-btn">Azure</button>
+      </div>
+      <div class="nav-actions">
+        <div class="icon-btn" onclick="toggleTheme()" id="theme-btn" title="Toggle theme">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </div>
+        <div class="icon-btn" onclick="toggleNotifications()" title="Notifications" style="position:relative">
+          <div class="dot"></div>
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="icon-btn" onclick="showToast('info','No additional options')" title="More">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+        </div>
+        <div class="avatar" onclick="showToast('info','N. Ramesh — Admin')">NR</div>
+      </div>
+    </nav>
+
+    <!-- Notification Dropdown -->
+    <div id="notif-dropdown" style="display:none;position:fixed;top:64px;right:16px;width:340px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;z-index:400;box-shadow:0 20px 60px rgba(0,0,0,0.5);overflow:hidden;animation:fadeUp 0.2s ease">
+      <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <span style="font-weight:700;font-size:14px">Alerts</span>
+        <button onclick="document.getElementById('notif-dropdown').style.display='none'" style="font-size:11px;color:var(--blue);background:none;border:none;cursor:pointer;font-family:inherit">Dismiss</button>
+      </div>
+      <div style="max-height:300px;overflow-y:auto">
+        <div style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--red);margin-top:4px;flex-shrink:0;box-shadow:0 0 6px var(--red)"></div>
+          <div><div style="font-size:13px;font-weight:600">Critical: S3 Public Bucket Exposed</div><div style="font-size:11px;color:var(--text2);margin-top:2px">prod-media-assets · 2 minutes ago</div></div>
+        </div>
+        <div style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);margin-top:4px;flex-shrink:0"></div>
+          <div><div style="font-size:13px;font-weight:600">High: Root Account Login Detected</div><div style="font-size:11px;color:var(--text2);margin-top:2px">AWS Account #482901 · 8 minutes ago</div></div>
+        </div>
+        <div style="display:flex;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--blue);margin-top:4px;flex-shrink:0"></div>
+          <div><div style="font-size:13px;font-weight:600">Scan Completed: AWS Deep Scan</div><div style="font-size:11px;color:var(--text2);margin-top:2px">147 findings · 22 minutes ago</div></div>
+        </div>
+        <div style="display:flex;gap:10px;padding:12px 16px;cursor:pointer" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--green);margin-top:4px;flex-shrink:0"></div>
+          <div><div style="font-size:13px;font-weight:600">Auto-Remediated: 3 Low Issues</div><div style="font-size:11px;color:var(--text2);margin-top:2px">GCP prod-infra · 1 hour ago</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 1: DASHBOARD -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="content active" id="screen-dashboard">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Command Center</div>
+          <div class="section-sub">Last updated: <span id="last-updated"></span> — All systems operational</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="filter-btn active">Live</button>
+          <button class="filter-btn" onclick="showToast('success','Refreshing data…')">Refresh</button>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="grid g4" style="margin-bottom:14px">
+        <div class="card" style="cursor:pointer" onclick="showScreen('vulns',document.querySelectorAll('.nav-item')[2])">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between">
+            <div>
+              <div class="card-label">Critical Issues</div>
+              <div class="stat-value counter" data-target="7" style="color:var(--red)">0</div>
+              <div class="stat-label">Across 3 providers</div>
+              <div class="stat-delta delta-up">↑ 2 since yesterday</div>
+            </div>
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--red-dim);display:flex;align-items:center;justify-content:center;">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="var(--red)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+          </div>
+          <div class="spark" style="margin-top:10px" id="spark-crit"></div>
+        </div>
+        <div class="card" style="cursor:pointer" onclick="showScreen('vulns',document.querySelectorAll('.nav-item')[2])">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between">
+            <div>
+              <div class="card-label">Total Vulnerabilities</div>
+              <div class="stat-value counter" data-target="147" style="color:var(--amber)">0</div>
+              <div class="stat-label">Active findings</div>
+              <div class="stat-delta delta-down">↓ 12 remediated</div>
+            </div>
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--amber-dim);display:flex;align-items:center;justify-content:center;">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="var(--amber)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+          </div>
+          <div class="spark" style="margin-top:10px" id="spark-total"></div>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between">
+            <div>
+              <div class="card-label">Resources Scanned</div>
+              <div class="stat-value counter" data-target="2841" style="color:var(--blue)">0</div>
+              <div class="stat-label">Last scan: 4m ago</div>
+              <div class="stat-delta" style="color:var(--text2)">+89 new resources</div>
+            </div>
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--blue-dim);display:flex;align-items:center;justify-content:center;">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="var(--blue)" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            </div>
+          </div>
+          <div class="spark" style="margin-top:10px" id="spark-res"></div>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between">
+            <div>
+              <div class="card-label">Pass Rate</div>
+              <div class="stat-value counter" data-target="73" data-suffix="%" style="color:var(--green)">0</div>
+              <div class="stat-label">CIS benchmark</div>
+              <div class="stat-delta delta-down">↑ 4% this week</div>
+            </div>
+            <div style="width:36px;height:36px;border-radius:10px;background:var(--green-dim);display:flex;align-items:center;justify-content:center;">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="var(--green)" stroke-width="2"><polyline points="20,6 9,17 4,12"/></svg>
+            </div>
+          </div>
+          <div class="spark" style="margin-top:10px" id="spark-pass"></div>
+        </div>
+      </div>
+
+      <!-- QUICK ACTIONS -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="filter-btn active" style="display:flex;align-items:center;gap:6px;padding:7px 14px" onclick="showScreen('scan',document.querySelectorAll('.nav-item')[1])">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Run Scan
+        </button>
+        <button class="filter-btn" style="display:flex;align-items:center;gap:6px;padding:7px 14px" onclick="bulkRemediate()">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12"/></svg>
+          Auto-Fix Critical
+        </button>
+        <button class="filter-btn" style="display:flex;align-items:center;gap:6px;padding:7px 14px" onclick="showToast('success','PDF report generated')">
+          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+          Export Report
+        </button>
+        <button class="filter-btn" style="display:flex;align-items:center;gap:6px;padding:7px 14px;margin-left:auto" onclick="simulateLiveUpdate()">
+          <span id="live-dot" style="width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;animation:pulse 1.5s infinite"></span>
+          Live Feed
+        </button>
+      </div>
+
+      
+        <!-- RISK SCORE -->
+        <div class="card">
+          <div class="card-label">Overall Risk Score</div>
+          <div class="risk-ring-wrap">
+            <div class="risk-ring">
+              <svg width="100" height="100" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
+                <circle cx="50" cy="50" r="40" fill="none" stroke="var(--amber)" stroke-width="10"
+                  stroke-dasharray="251" stroke-dashoffset="67" stroke-linecap="round"/>
+              </svg>
+              <div class="risk-center">
+                <div class="risk-num">73</div>
+                <div class="risk-word">Medium</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:8px">Risk Breakdown</div>
+              <div style="font-size:12px;color:var(--text2);display:flex;flex-direction:column;gap:4px">
+                <span><span style="color:var(--red)">●</span> Critical: 7</span>
+                <span><span style="color:var(--amber)">●</span> High: 28</span>
+                <span><span style="color:#EAB308)">●</span> Medium: 61</span>
+                <span><span style="color:var(--green)">●</span> Low: 51</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CLOUD OVERVIEW -->
+        <div class="card">
+          <div class="card-label">Multi-Cloud Overview</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+            <div class="cloud-provider" onclick="showToast('info','Filtered to AWS')">
+              <div class="cloud-logo aws-logo">A</div>
+              <div>
+                <div style="font-size:13px;font-weight:600">Amazon AWS</div>
+                <div style="font-size:11px;color:var(--text2)">1,204 resources</div>
+              </div>
+              <div style="margin-left:auto;text-align:right">
+                <span class="badge badge-critical">4 Critical</span>
+                <div style="font-size:11px;color:var(--text2);margin-top:3px">89 findings</div>
+              </div>
+            </div>
+            <div class="cloud-provider" onclick="showToast('info','Filtered to GCP')">
+              <div class="cloud-logo gcp-logo">G</div>
+              <div>
+                <div style="font-size:13px;font-weight:600">Google Cloud</div>
+                <div style="font-size:11px;color:var(--text2)">847 resources</div>
+              </div>
+              <div style="margin-left:auto;text-align:right">
+                <span class="badge badge-high">2 High</span>
+                <div style="font-size:11px;color:var(--text2);margin-top:3px">33 findings</div>
+              </div>
+            </div>
+            <div class="cloud-provider" onclick="showToast('info','Filtered to Azure')">
+              <div class="cloud-logo az-logo">Az</div>
+              <div>
+                <div style="font-size:13px;font-weight:600">Microsoft Azure</div>
+                <div style="font-size:11px;color:var(--text2)">790 resources</div>
+              </div>
+              <div style="margin-left:auto;text-align:right">
+                <span class="badge badge-medium">1 Med</span>
+                <div style="font-size:11px;color:var(--text2);margin-top:3px">25 findings</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMPLIANCE -->
+        <div class="card">
+          <div class="card-label">Compliance Status</div>
+          <div style="margin-top:4px">
+            <div class="compliance-row">
+              <span style="font-size:12px;min-width:70px">CIS AWS</span>
+              <div class="compliance-bar-wrap"><div class="compliance-bar" style="width:78%;background:var(--green)"></div></div>
+              <span class="compliance-pct" style="color:var(--green)">78%</span>
+            </div>
+            <div class="compliance-row">
+              <span style="font-size:12px;min-width:70px">SOC 2</span>
+              <div class="compliance-bar-wrap"><div class="compliance-bar" style="width:65%;background:var(--amber)"></div></div>
+              <span class="compliance-pct" style="color:var(--amber)">65%</span>
+            </div>
+            <div class="compliance-row">
+              <span style="font-size:12px;min-width:70px">PCI DSS</span>
+              <div class="compliance-bar-wrap"><div class="compliance-bar" style="width:82%;background:var(--green)"></div></div>
+              <span class="compliance-pct" style="color:var(--green)">82%</span>
+            </div>
+            <div class="compliance-row">
+              <span style="font-size:12px;min-width:70px">HIPAA</span>
+              <div class="compliance-bar-wrap"><div class="compliance-bar" style="width:45%;background:var(--red)"></div></div>
+              <span class="compliance-pct" style="color:var(--red)">45%</span>
+            </div>
+            <div class="compliance-row">
+              <span style="font-size:12px;min-width:70px">NIST CSF</span>
+              <div class="compliance-bar-wrap"><div class="compliance-bar" style="width:71%;background:var(--amber)"></div></div>
+              <span class="compliance-pct" style="color:var(--amber)">71%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid g2">
+        <!-- ACTIVE THREATS -->
+        <div class="card">
+          <div class="card-label" style="display:flex;align-items:center;justify-content:space-between">
+            Active Threats
+            <span style="font-size:10px;color:var(--green);display:flex;align-items:center;gap:4px">
+              <span class="ticker-dot crit"></span> Live
+            </span>
+          </div>
+          <div class="ticker-wrap">
+            <div class="ticker-item">
+              <span class="ticker-dot crit"></span>
+              <div style="flex:1">
+                <div style="font-weight:600">S3 bucket public access enabled</div>
+                <div style="color:var(--text2);font-size:11px">arn:aws:s3:::prod-media-assets · 2m ago</div>
+              </div>
+              <span class="badge badge-critical">Critical</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-dot warn"></span>
+              <div style="flex:1">
+                <div style="font-weight:600">IAM root account active</div>
+                <div style="color:var(--text2);font-size:11px">AWS Account #482901 · 8m ago</div>
+              </div>
+              <span class="badge badge-high">High</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-dot warn"></span>
+              <div style="flex:1">
+                <div style="font-weight:600">Unencrypted RDS instance</div>
+                <div style="color:var(--text2);font-size:11px">prod-postgres-01 · 14m ago</div>
+              </div>
+              <span class="badge badge-high">High</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-dot info"></span>
+              <div style="flex:1">
+                <div style="font-weight:600">VPC Flow Logs disabled</div>
+                <div style="color:var(--text2);font-size:11px">vpc-0xf82b3 · 22m ago</div>
+              </div>
+              <span class="badge badge-medium">Medium</span>
+            </div>
+            <div class="ticker-item">
+              <span class="ticker-dot info"></span>
+              <div style="flex:1">
+                <div style="font-weight:600">GKE cluster without RBAC</div>
+                <div style="color:var(--text2);font-size:11px">gke-prod-cluster-2 · 35m ago</div>
+              </div>
+              <span class="badge badge-medium">Medium</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- HEATMAP -->
+        <div class="card">
+          <div class="card-label">Misconfiguration Heatmap <span style="color:var(--text3);font-weight:400">(last 84 days)</span></div>
+          <div class="heatmap-grid" id="heatmap"></div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;color:var(--text3)">
+            Less
+            <div style="display:flex;gap:2px">
+              <div style="width:10px;height:10px;border-radius:2px;background:var(--bg3)"></div>
+              <div style="width:10px;height:10px;border-radius:2px;background:rgba(239,68,68,0.2)"></div>
+              <div style="width:10px;height:10px;border-radius:2px;background:rgba(239,68,68,0.5)"></div>
+              <div style="width:10px;height:10px;border-radius:2px;background:rgba(239,68,68,0.8)"></div>
+              <div style="width:10px;height:10px;border-radius:2px;background:var(--red)"></div>
+            </div>
+            More
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 2: SCAN & AUDIT -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="content" id="screen-scan">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Scan & Audit</div>
+          <div class="section-sub">Configure and launch security scans across your cloud environments</div>
+        </div>
+      </div>
+      <div class="scan-layout">
+        <!-- CONFIG PANEL -->
+        <div class="scan-config">
+          <div class="card">
+            <div class="config-label">Cloud Provider</div>
+            <div class="config-options">
+              <button class="config-chip sel">AWS</button>
+              <button class="config-chip" onclick="this.parentElement.querySelectorAll('.config-chip').forEach(c=>c.classList.remove('sel'));this.classList.add('sel')">GCP</button>
+              <button class="config-chip" onclick="this.parentElement.querySelectorAll('.config-chip').forEach(c=>c.classList.remove('sel'));this.classList.add('sel')">Azure</button>
+              <button class="config-chip" onclick="this.parentElement.querySelectorAll('.config-chip').forEach(c=>c.classList.remove('sel'));this.classList.add('sel')">All</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="config-label">Services</div>
+            <div class="config-options" id="svc-chips">
+              <button class="config-chip sel">S3</button>
+              <button class="config-chip sel">IAM</button>
+              <button class="config-chip">VPC</button>
+              <button class="config-chip">EC2</button>
+              <button class="config-chip">RDS</button>
+              <button class="config-chip">Lambda</button>
+              <button class="config-chip">EKS</button>
+              <button class="config-chip">CloudTrail</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="config-label">Scan Type</div>
+            <div class="toggle-row">
+              <span class="toggle-label">Deep Scan</span>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Include Historical</span>
+              <div class="toggle" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Auto-Remediate Low</span>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="config-label">Config Preview (YAML)</div>
+            <div class="code-block" style="font-size:11px">
+scan:
+  provider: aws
+  services: [s3, iam]
+  type: deep
+  remediate: low
+  output: json
+  notify:
+    slack: "#security-alerts"
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          </div>
+
+          <button class="scan-btn" onclick="startScan()">▶ Launch Scan</button>
+        </div>
+
+        <!-- PROGRESS PANEL -->
+        <div class="scan-progress">
+          <div class="card" style="margin-bottom:0">
+            <div class="card-label" style="display:flex;align-items:center;justify-content:space-between">
+              Pipeline Progress
+              <span class="badge badge-info" id="scan-status">Idle</span>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px" id="pipeline-steps">
+              <div class="pipeline-step">
+                <div class="step-icon done">✓</div>
+                <div class="step-info">
+                  <div class="step-name">Authentication</div>
+                  <div class="step-detail">IAM credentials validated</div>
+                </div>
+                <span class="badge badge-low">Done</span>
+              </div>
+              <div class="pipeline-step">
+                <div class="step-icon pending">○</div>
+                <div class="step-info">
+                  <div class="step-name">Asset Discovery</div>
+                  <div class="step-detail">Enumerate cloud resources</div>
+                  <div class="progress-bar-wrap" style="margin-top:6px"><div class="progress-bar" style="width:0%" id="disc-bar"></div></div>
+                </div>
+                <span class="badge badge-info" id="disc-badge">Ready</span>
+              </div>
+              <div class="pipeline-step">
+                <div class="step-icon pending">○</div>
+                <div class="step-info">
+                  <div class="step-name">Policy Analysis</div>
+                  <div class="step-detail">Evaluate IAM policies & permissions</div>
+                </div>
+                <span class="badge badge-info" id="pol-badge">Ready</span>
+              </div>
+              <div class="pipeline-step">
+                <div class="step-icon pending">○</div>
+                <div class="step-info">
+                  <div class="step-name">Vulnerability Matching</div>
+                  <div class="step-detail">CVE database cross-reference</div>
+                </div>
+                <span class="badge badge-info" id="vuln-badge">Ready</span>
+              </div>
+              <div class="pipeline-step">
+                <div class="step-icon pending">○</div>
+                <div class="step-info">
+                  <div class="step-name">Report Generation</div>
+                  <div class="step-detail">Compile findings & recommendations</div>
+                </div>
+                <span class="badge badge-info" id="rep-badge">Ready</span>
+              </div>
+            </div>
+
+            <div class="card-label" style="margin-bottom:8px">Live Logs</div>
+            <div class="log-stream" id="log-stream">
+              <div class="log-line"><span class="log-time">[00:00:00]</span> <span class="log-info">CloudGuard scanner initialized</span></div>
+              <div class="log-line"><span class="log-time">[00:00:01]</span> <span class="log-ok">✓ AWS credentials validated</span></div>
+              <div class="log-line"><span class="log-time">[00:00:02]</span> Waiting for scan trigger…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 3: VULNERABILITIES -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="content" id="screen-vulns">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Vulnerability Explorer</div>
+          <div class="section-sub">147 active findings — sorted by risk score</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="filter-btn" onclick="showToast('success','Exported CSV')">Export CSV</button>
+          <button class="filter-btn active">Bulk Actions ▾</button>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn active" onclick="filterSev(this,'all')">All (147)</button>
+        <button class="filter-btn" onclick="filterSev(this,'critical')" style="color:var(--red)">Critical (7)</button>
+        <button class="filter-btn" onclick="filterSev(this,'high')" style="color:var(--amber)">High (28)</button>
+        <button class="filter-btn" onclick="filterSev(this,'medium')">Medium (61)</button>
+        <button class="filter-btn" onclick="filterSev(this,'low')">Low (51)</button>
+        <select class="filter-btn" style="margin-left:auto">
+          <option>All Clouds</option>
+          <option>AWS</option>
+          <option>GCP</option>
+          <option>Azure</option>
+        </select>
+        <select class="filter-btn">
+          <option>All Services</option>
+          <option>S3</option>
+          <option>IAM</option>
+          <option>VPC</option>
+          <option>EC2</option>
+        </select>
+      </div>
+
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="vtable">
+          <thead>
+            <tr>
+              <th style="width:32px;padding-left:16px"><input type="checkbox" style="accent-color:var(--blue)"></th>
+              <th>Resource</th>
+              <th>Issue Type</th>
+              <th>Severity</th>
+              <th>Risk Score</th>
+              <th>Status</th>
+              <th>Suggested Fix</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="vuln-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 4: REPORTS -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="content" id="screen-reports">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Reports & Analytics</div>
+          <div class="section-sub">Security trends and executive summaries</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="filter-btn" onclick="showToast('success','Generating PDF…')">Export PDF</button>
+          <button class="filter-btn" onclick="showToast('success','Link copied!')">Share Link</button>
+          <button class="filter-btn active">Last 30 Days ▾</button>
+        </div>
+      </div>
+
+      <div class="ai-insight" style="margin-bottom:16px">
+        <div class="ai-label">✦ AI Security Summary</div>
+        <div class="ai-text">Your overall security posture improved by <strong style="color:var(--green)">12%</strong> this month. The primary risk driver remains <strong style="color:var(--amber)">IAM misconfigurations in AWS</strong> (28 findings). Three critical S3 exposure issues were auto-remediated. Recommend immediate action on <strong style="color:var(--red)">HIPAA compliance gaps</strong> — currently at 45% (target: 80%).</div>
+      </div>
+
+      <div class="grid g2" style="margin-bottom:14px">
+        <div class="card">
+          <div class="card-label">Risk Trend — Last 30 Days</div>
+          <canvas id="trend-chart" width="400" height="140"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-label">Vulnerability Distribution</div>
+          <canvas id="dist-chart" width="400" height="140"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Cloud-wise Vulnerabilities</div>
+        <canvas id="cloud-chart" width="800" height="120"></canvas>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 5: INTEGRATIONS -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="content" id="screen-integrations">
+      <div class="section-header">
+        <div>
+          <div class="section-title">DevSecOps Integrations</div>
+          <div class="section-sub">Connect your CI/CD pipelines and collaboration tools</div>
+        </div>
+      </div>
+
+      <!-- Pipeline Viz -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-label">Active Pipeline — prod-deploy #142</div>
+        <div class="pipeline-flow">
+          <div class="flow-node">
+            <div class="flow-box done">Code Commit</div>
+            <div class="flow-time">0:12</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">
+            <div class="flow-box done">Build</div>
+            <div class="flow-time">1:43</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">
+            <div class="flow-box done">Unit Tests</div>
+            <div class="flow-time">0:58</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">
+            <div class="flow-box run">CloudGuard Scan</div>
+            <div class="flow-time">Running…</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">
+            <div class="flow-box pend">Deploy Staging</div>
+            <div class="flow-time">—</div>
+          </div>
+          <div class="flow-arrow">→</div>
+          <div class="flow-node">
+            <div class="flow-box pend">Deploy Prod</div>
+            <div class="flow-time">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid g3">
+        <div class="card integration-card">
+          <div class="int-header">
+            <div class="int-logo" style="background:#24292e;font-size:22px">⬡</div>
+            <div>
+              <div class="int-name">GitHub Actions</div>
+              <div class="int-desc">Automate scans on every PR</div>
+            </div>
+            <div class="int-status">
+              <span class="status-dot connected"></span>
+              <span style="font-size:11px;color:var(--green)">Connected</span>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text2)">3 workflows active · Last run: 4m ago</div>
+          <button class="connect-btn connected">✓ Connected</button>
+        </div>
+
+        <div class="card integration-card">
+          <div class="int-header">
+            <div class="int-logo" style="background:#D33833;color:#fff;font-size:12px;font-weight:800">J</div>
+            <div>
+              <div class="int-name">Jenkins</div>
+              <div class="int-desc">Post-build security gate</div>
+            </div>
+            <div class="int-status">
+              <span class="status-dot idle"></span>
+              <span style="font-size:11px;color:var(--text3)">Not connected</span>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text2)">Supports CloudGuard plugin v2.4+</div>
+          <button class="connect-btn" onclick="showToast('info','Redirecting to Jenkins OAuth…')">Connect Jenkins</button>
+        </div>
+
+        <div class="card integration-card">
+          <div class="int-header">
+            <div class="int-logo" style="background:#326CE5;color:#fff;font-size:12px;font-weight:800">K8s</div>
+            <div>
+              <div class="int-name">Kubernetes</div>
+              <div class="int-desc">Runtime pod security scanning</div>
+            </div>
+            <div class="int-status">
+              <span class="status-dot error"></span>
+              <span style="font-size:11px;color:var(--red)">Auth Error</span>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--red)">Token expired — re-authenticate</div>
+          <button class="connect-btn" onclick="showToast('error','Reconnecting…')" style="border-color:var(--red);color:var(--red)">Reconnect</button>
+        </div>
+
+        <div class="card integration-card">
+          <div class="int-header">
+            <div class="int-logo" style="background:#4A154B;font-size:18px">💬</div>
+            <div>
+              <div class="int-name">Slack</div>
+              <div class="int-desc">Real-time alert notifications</div>
+            </div>
+            <div class="int-status">
+              <span class="status-dot connected"></span>
+              <span style="font-size:11px;color:var(--green)">Connected</span>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text2)">#security-alerts · 12 channels</div>
+          <button class="connect-btn connected">✓ Active</button>
+        </div>
+
+        <div class="card integration-card">
+          <div class="int-header">
+            <div class="int-logo" style="background:#0078D4;color:#fff;font-size:16px">◈</div>
+            <div>
+              <div class="int-name">Azure DevOps</div>
+              <div class="int-desc">Pipeline security gate</div>
+            </div>
+            <div class="int-status">
+              <span class="status-dot idle"></span>
+              <span style="font-size:11px;color:var(--text3)">Available</span>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text2)">Supports YAML pipeline tasks</div>
+          <button class="connect-btn" onclick="showToast('info','Opening Azure OAuth…')">Connect</button>
+        </div>
+
+        <div class="card integration-card">
+          <div class="int-header">
+            <div class="int-logo" style="background:#E24329;color:#fff;font-size:16px">⌦</div>
+            <div>
+              <div class="int-name">GitLab CI</div>
+              <div class="int-desc">Auto-scan on merge requests</div>
+            </div>
+            <div class="int-status">
+              <span class="status-dot idle"></span>
+              <span style="font-size:11px;color:var(--text3)">Available</span>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text2)">Native .gitlab-ci.yml support</div>
+          <button class="connect-btn" onclick="showToast('info','Opening GitLab OAuth…')">Connect</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 6: CLI / API -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="content" id="screen-cli">
+      <div class="section-header">
+        <div>
+          <div class="section-title">CLI & API Playground</div>
+          <div class="section-sub">Developer-first interface for automation and scripting</div>
+        </div>
+      </div>
+
+      <div class="grid g2" style="margin-bottom:16px">
+        <div class="card">
+          <div class="card-label">Terminal</div>
+          <div class="terminal">
+            <div class="term-header">
+              <div class="term-dot" style="background:#EF4444"></div>
+              <div class="term-dot" style="background:#F59E0B"></div>
+              <div class="term-dot" style="background:#22C55E"></div>
+              <div class="term-label">cloudguard-cli v2.4.1</div>
+            </div>
+            <div class="term-body" id="terminal-body">
+              <div class="term-line"><span class="term-prompt">➜ cloudguard</span> <span class="term-cmd">scan --provider aws --deep</span></div>
+              <div class="term-line term-out">Initializing deep scan on AWS...</div>
+              <div class="term-line term-out" style="color:var(--green)">✓ 2,841 resources discovered</div>
+              <div class="term-line term-out" style="color:var(--amber)">⚠ 147 findings (7 critical)</div>
+              <div class="term-line term-out">Report saved: ./cloudguard-report-2025.json</div>
+              <div class="term-line" style="margin-top:8px"><span class="term-prompt">➜ cloudguard</span> <span class="term-cmd">fix --severity critical --auto</span></div>
+              <div class="term-line term-out">Applying fixes...</div>
+              <div class="term-line term-out" style="color:var(--green)">✓ 3 issues auto-remediated</div>
+              <div class="term-line" style="margin-top:8px">
+                <span class="term-prompt">➜ </span>
+                <input class="term-input" type="text" placeholder="Type a command…" onkeydown="runCmd(event,this)">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">Quick Commands</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div class="code-block" style="font-size:11px;padding:8px 12px">cloudguard scan --provider aws --services s3,iam <button class="copy-btn" onclick="copyCode(this)" style="position:relative;top:0;right:0;margin-left:8px">Copy</button></div>
+            <div class="code-block" style="font-size:11px;padding:8px 12px">cloudguard report --format json --last 7d <button class="copy-btn" onclick="copyCode(this)" style="position:relative;top:0;right:0;margin-left:8px">Copy</button></div>
+            <div class="code-block" style="font-size:11px;padding:8px 12px">cloudguard fix --id CRIT-001 --apply <button class="copy-btn" onclick="copyCode(this)" style="position:relative;top:0;right:0;margin-left:8px">Copy</button></div>
+            <div class="code-block" style="font-size:11px;padding:8px 12px">cloudguard list findings --sev critical <button class="copy-btn" onclick="copyCode(this)" style="position:relative;top:0;right:0;margin-left:8px">Copy</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">REST API Tester</div>
+        <div class="api-tester">
+          <div class="api-row">
+            <select class="method-select">
+              <option>GET</option>
+              <option>POST</option>
+              <option>PUT</option>
+              <option>DELETE</option>
+            </select>
+            <input class="api-url" type="text" value="https://api.cloudguard.io/v1/findings?severity=critical">
+            <button class="send-btn" onclick="sendApiRequest()">Send</button>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="filter-btn active">Headers</button>
+            <button class="filter-btn">Body</button>
+            <button class="filter-btn">Auth</button>
+          </div>
+          <div class="code-block" style="font-size:11px">Authorization: Bearer cg_live_xK9...
+Content-Type: application/json
+X-Cloud-Provider: aws</div>
+          <div class="card-label" style="margin-top:8px">Response</div>
+          <div class="api-response" id="api-response">// Click Send to make a request…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════ -->
+    <!-- SCREEN 7: SETTINGS -->
+    <!-- ════════════════════════════════════════════ -->
+    <div class="content" id="screen-settings">
+      <div class="section-header">
+        <div>
+          <div class="section-title">Settings & IAM</div>
+          <div class="section-sub">Manage users, API keys, and notification preferences</div>
+        </div>
+      </div>
+
+      <div class="grid g2">
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-label">Team Members</div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">N. Ramesh</div>
+                <div class="desc">ramesh@company.io</div>
+              </div>
+              <span class="role-badge role-admin">Admin</span>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">Priya Reddy</div>
+                <div class="desc">priya@company.io</div>
+              </div>
+              <span class="role-badge role-admin">Admin</span>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">Arun Kumar</div>
+                <div class="desc">arun@company.io</div>
+              </div>
+              <span class="role-badge role-viewer">Viewer</span>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">Dev Bot</div>
+                <div class="desc">bot@ci-system.io</div>
+              </div>
+              <span class="role-badge" style="background:var(--purple);color:#fff;opacity:0.8">CI Bot</span>
+            </div>
+            <button class="connect-btn" style="margin-top:10px" onclick="showToast('info','Invite modal opening…')">+ Invite Member</button>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Notification Preferences</div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">Slack Alerts</div>
+                <div class="desc">Critical & High severity only</div>
+              </div>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">Email Digest</div>
+                <div class="desc">Daily summary at 9:00 AM</div>
+              </div>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">PagerDuty</div>
+                <div class="desc">On-call for critical events</div>
+              </div>
+              <div class="toggle" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">Weekly Report</div>
+                <div class="desc">PDF to all admins on Monday</div>
+              </div>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="card" style="margin-bottom:14px">
+            <div class="card-label">API Keys</div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">Production Key</div>
+                <div class="desc">Created Jan 15, 2025</div>
+              </div>
+              <span class="badge badge-low">Active</span>
+            </div>
+            <div class="api-key-display" style="margin-bottom:10px">
+              <span>cg_live_xK9mN2pQ...</span>
+              <button class="copy-btn" style="position:relative;top:0;right:0" onclick="showToast('success','API key copied!')">Copy</button>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">CI/CD Key</div>
+                <div class="desc">Created Feb 3, 2025</div>
+              </div>
+              <span class="badge badge-low">Active</span>
+            </div>
+            <div class="api-key-display" style="margin-bottom:10px">
+              <span>cg_ci_7rTy4kLo...</span>
+              <button class="copy-btn" style="position:relative;top:0;right:0" onclick="showToast('success','API key copied!')">Copy</button>
+            </div>
+            <button class="connect-btn" onclick="showToast('success','New API key generated!')">+ Generate Key</button>
+          </div>
+
+          <div class="card">
+            <div class="card-label">Cloud Account Linking</div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">AWS Account #482901</div>
+                <div class="desc">Role: CloudGuardScanner · us-east-1</div>
+              </div>
+              <span class="badge badge-low">Linked</span>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">GCP Project: prod-infra</div>
+                <div class="desc">Service Account: cloudguard@…</div>
+              </div>
+              <span class="badge badge-low">Linked</span>
+            </div>
+            <div class="settings-row">
+              <div class="settings-row-info">
+                <div class="label">Azure Subscription</div>
+                <div class="desc">Tenant: company.onmicrosoft.com</div>
+              </div>
+              <span class="badge badge-high">Expiring Soon</span>
+            </div>
+            <button class="connect-btn" style="margin-top:10px" onclick="showToast('info','Cloud account wizard opening…')">+ Link Account</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── SIDE PANEL (issue detail) ─── -->
+<div class="panel-overlay" id="panel-overlay" onclick="closePanel()"></div>
+<div class="side-panel" id="side-panel">
+  <div class="panel-header">
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span class="badge badge-critical">Critical</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3)">CRIT-001</span>
+      </div>
+      <div style="font-weight:700;font-size:15px" id="panel-title">S3 Bucket Public Access Enabled</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:3px" id="panel-resource">arn:aws:s3:::prod-media-assets</div>
+    </div>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-tabs">
+    <div class="panel-tab active" onclick="switchTab(this,'tab-overview')">Overview</div>
+    <div class="panel-tab" onclick="switchTab(this,'tab-fix')">Fix</div>
+    <div class="panel-tab" onclick="switchTab(this,'tab-history')">History</div>
+  </div>
+  <div class="panel-body">
+    <div id="tab-overview">
+      <div class="panel-section">
+        <div class="panel-section-title">Description</div>
+        <p style="font-size:13px;color:var(--text2);line-height:1.6">The S3 bucket <code style="background:var(--bg);padding:1px 5px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11px">prod-media-assets</code> has public read/write access enabled. Any internet user can read, overwrite, or delete objects in this bucket, exposing sensitive business data.</p>
+      </div>
+      <div class="panel-section">
+        <div class="panel-section-title">Impact</div>
+        <div style="background:var(--red-dim);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:12px;font-size:13px;color:var(--text2);line-height:1.6">
+          Data breach risk · Regulatory violation (GDPR, HIPAA) · Potential ransom/deletion of objects · Reputational damage
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="panel-section-title">Affected Resources</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div style="background:var(--bg3);border-radius:6px;padding:7px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue)">s3://prod-media-assets (2.3TB · 18,492 objects)</div>
+          <div style="background:var(--bg3);border-radius:6px;padding:7px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue)">s3://prod-media-assets-backup</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-fix" style="display:none">
+      <div class="panel-section">
+        <div class="panel-section-title">Step-by-Step Fix</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:10px;font-size:13px">
+            <span style="width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">1</span>
+            Navigate to S3 Console → Select bucket → Permissions tab
+          </div>
+          <div style="display:flex;gap:10px;font-size:13px">
+            <span style="width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">2</span>
+            Under "Block public access", click Edit and enable all 4 options
+          </div>
+          <div style="display:flex;gap:10px;font-size:13px">
+            <span style="width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">3</span>
+            Review and update bucket policy to remove public principals
+          </div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="panel-section-title">AWS CLI Fix</div>
+        <div class="code-block">aws s3api put-public-access-block \
+  --bucket prod-media-assets \
+  --public-access-block-configuration \
+  "BlockPublicAcls=true,\
+  IgnorePublicAcls=true,\
+  BlockPublicPolicy=true,\
+  RestrictPublicBuckets=true"
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      </div>
+      <div class="panel-section">
+        <div class="panel-section-title">Terraform Snippet</div>
+        <div class="code-block">resource "aws_s3_bucket_public_access_block" "fix" {
+  bucket = "prod-media-assets"
+  block_public_acls       = true
+  ignore_public_acls      = true
+  block_public_policy     = true
+  restrict_public_buckets = true
+}
+        <button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      </div>
+      <button class="auto-remediate-btn" onclick="autoRemediate()">⚡ Auto-Remediate Now</button>
+    </div>
+
+    <div id="tab-history" style="display:none">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="border-left:2px solid var(--border);padding-left:12px;padding-bottom:12px;position:relative">
+          <div style="position:absolute;left:-5px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--red)"></div>
+          <div style="font-size:12px;font-weight:600">Detected</div>
+          <div style="font-size:11px;color:var(--text2)">Today 09:14 AM — CloudGuard Scan #142</div>
+        </div>
+        <div style="border-left:2px solid var(--border);padding-left:12px;padding-bottom:12px;position:relative">
+          <div style="position:absolute;left:-5px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--amber)"></div>
+          <div style="font-size:12px;font-weight:600">Assigned to N. Ramesh</div>
+          <div style="font-size:11px;color:var(--text2)">Today 09:20 AM — Auto-assigned (Admin)</div>
+        </div>
+        <div style="border-left:2px solid var(--border);padding-left:12px;position:relative">
+          <div style="position:absolute;left:-5px;top:3px;width:8px;height:8px;border-radius:50%;background:var(--text3)"></div>
+          <div style="font-size:12px;font-weight:600">Awaiting Fix</div>
+          <div style="font-size:11px;color:var(--text2)">Now</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ─── AI COPILOT ─── -->
+<button class="copilot-btn" onclick="toggleCopilot()" title="AI Copilot">✦</button>
+<div class="copilot-panel" id="copilot-panel">
+  <div class="copilot-header">
+    <span style="font-size:16px">✦</span>
+    <span class="copilot-title">CloudGuard AI Copilot</span>
+    <span style="margin-left:auto;font-size:10px;color:var(--text3);font-family:'JetBrains Mono',monospace">claude-3-opus</span>
+  </div>
+  <div class="copilot-messages" id="copilot-msgs">
+    <div class="copilot-msg ai">Hi! I can explain any vulnerability, suggest fixes, or summarize your security posture. What would you like to know?</div>
+  </div>
+  <div class="copilot-input-row">
+    <input class="copilot-input" id="copilot-input" type="text" placeholder="Ask about a vulnerability…" onkeydown="if(event.key==='Enter')sendCopilot()">
+    <button class="copilot-send" onclick="sendCopilot()">↑</button>
+  </div>
+</div>
+
+<!-- ─── TOAST CONTAINER ─── -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+// ─── THEME TOGGLE ────────────────────────────────
+let lightMode = false;
+function toggleTheme() {
+  lightMode = !lightMode;
+  document.body.classList.toggle('light', lightMode);
+  const btn = document.getElementById('theme-btn');
+  btn.innerHTML = lightMode
+    ? `<svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`
+    : `<svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  showToast('info', lightMode ? '☀️ Light mode enabled' : '🌙 Dark mode enabled');
+  setTimeout(() => { if (document.getElementById('trend-chart')) drawCharts(); }, 100);
+}
+
+// ─── NOTIFICATIONS ───────────────────────────────
+let notifOpen = false;
+function toggleNotifications() {
+  notifOpen = !notifOpen;
+  const el = document.getElementById('notif-dropdown');
+  el.style.display = notifOpen ? 'block' : 'none';
+  if (notifOpen) document.addEventListener('click', closeNotifOutside, true);
+}
+function closeNotifOutside(e) {
+  const d = document.getElementById('notif-dropdown');
+  if (!d.contains(e.target)) {
+    d.style.display = 'none';
+    notifOpen = false;
+    document.removeEventListener('click', closeNotifOutside, true);
+  }
+}
+
+// ─── SPARKLINES ──────────────────────────────────
+function buildSparkline(id, values, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = '';
+  const max = Math.max(...values);
+  values.forEach(v => {
+    const bar = document.createElement('div');
+    bar.className = 'spark-bar';
+    bar.style.background = color;
+    bar.style.opacity = 0.3 + (v/max)*0.7;
+    bar.style.height = '0px';
+    el.appendChild(bar);
+    requestAnimationFrame(() => {
+      bar.style.transition = 'height 0.6s ease';
+      bar.style.height = Math.max(3, (v/max)*30) + 'px';
+    });
+  });
+}
+
+function initSparklines() {
+  buildSparkline('spark-crit',  [3,5,4,6,5,7,7,8,6,7,8,7], 'var(--red)');
+  buildSparkline('spark-total', [155,148,152,141,139,147,150,147,145,141,147,147], 'var(--amber)');
+  buildSparkline('spark-res',   [2400,2500,2600,2700,2750,2780,2800,2820,2830,2835,2840,2841], 'var(--blue)');
+  buildSparkline('spark-pass',  [60,62,65,67,68,70,71,72,72,72,73,73], 'var(--green)');
+}
+
+// ─── COUNTER ANIMATION ────────────────────────────
+function animateCounters() {
+  document.querySelectorAll('.counter').forEach(el => {
+    const target = parseInt(el.dataset.target);
+    const suffix = el.dataset.suffix || '';
+    let current = 0;
+    const step = Math.max(1, target / 40);
+    const timer = setInterval(() => {
+      current = Math.min(current + step, target);
+      const val = Math.floor(current);
+      el.textContent = (target > 100 ? val.toLocaleString() : val) + suffix;
+      if (current >= target) {
+        el.textContent = (target > 1000 ? target.toLocaleString() : target) + suffix;
+        clearInterval(timer);
+      }
+    }, 25);
+  });
+}
+
+// ─── CARD GLOW ON MOUSE MOVE ──────────────────────
+document.querySelectorAll('.card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const r = card.getBoundingClientRect();
+    card.style.setProperty('--mx', (e.clientX - r.left) + 'px');
+    card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+  });
+});
+
+// ─── LIVE FEED SIMULATION ─────────────────────────
+const liveEvents = [
+  { type:'critical', msg:'New critical: GCS bucket logging disabled', resource:'gcs://analytics-raw' },
+  { type:'high',     msg:'High: Azure NSG allows RDP from 0.0.0.0/0', resource:'azure:nsg-web-01' },
+  { type:'info',     msg:'Scan completed: GCP prod-infra (42 findings)', resource:'gcp:prod-infra' },
+  { type:'low',      msg:'Auto-fixed: CloudTrail log validation enabled', resource:'aws:trail-main' },
+];
+let liveIdx = 0;
+function simulateLiveUpdate() {
+  const ev = liveEvents[liveIdx % liveEvents.length];
+  liveIdx++;
+  const colors = { critical: 'var(--red)', high: 'var(--amber)', info: 'var(--blue)', low: 'var(--green)' };
+  const icons =  { critical: '🔴', high: '🟡', info: '🔵', low: '🟢' };
+  showToast(ev.type === 'critical' ? 'error' : ev.type === 'high' ? 'warning' : 'success', `${icons[ev.type]} ${ev.msg}`);
+
+  // Also inject into ticker
+  const ticker = document.querySelector('.ticker-wrap');
+  if (ticker) {
+    const newItem = document.createElement('div');
+    newItem.className = 'ticker-item';
+    newItem.style.animation = 'fadeUp 0.3s ease';
+    newItem.innerHTML = `
+      <span class="ticker-dot" style="background:${colors[ev.type]}"></span>
+      <div style="flex:1"><div style="font-weight:600;font-size:12px">${ev.msg}</div>
+      <div style="color:var(--text2);font-size:11px">${ev.resource} · Just now</div></div>
+      <span class="badge badge-${ev.type === 'critical' ? 'critical' : ev.type === 'high' ? 'high' : ev.type === 'low' ? 'low' : 'info'}">${ev.type}</span>`;
+    ticker.prepend(newItem);
+    if (ticker.children.length > 6) ticker.lastElementChild.remove();
+  }
+}
+
+// ─── BULK REMEDIATE ──────────────────────────────
+function bulkRemediate() {
+  showToast('success', '⚡ Auto-remediating 7 critical issues…');
+  setTimeout(() => showToast('success', '✅ 5 issues fixed. 2 require manual review.'), 2500);
+}
+
+// ─── SCREEN NAVIGATION ───────────────────────────
+function showScreen(id, el) {
+  document.querySelectorAll('.content').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  if (id === 'reports') setTimeout(drawCharts, 50);
+  if (id === 'vulns') renderVulnTable();
+  if (id === 'dashboard') { animateCounters(); initSparklines(); }
+}
+
+// ─── SIDEBAR TOGGLE ──────────────────────────────
+let sidebarCollapsed = false;
+function toggleSidebar() {
+  sidebarCollapsed = !sidebarCollapsed;
+  document.getElementById('sidebar').classList.toggle('collapsed', sidebarCollapsed);
+}
+
+// ─── HEATMAP ─────────────────────────────────────
+function initHeatmap() {
+  const grid = document.getElementById('heatmap');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const levels = [0,0,0,1,1,2,2,3,3,4];
+  const colors = ['var(--bg3)','rgba(239,68,68,0.2)','rgba(239,68,68,0.4)','rgba(239,68,68,0.65)','var(--red)'];
+  for (let i = 0; i < 84; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'hm-cell';
+    const lvl = levels[Math.floor(Math.random() * levels.length)];
+    cell.style.background = colors[lvl];
+    cell.title = `${lvl * 3} misconfigs`;
+    cell.addEventListener('mouseenter', () => showToast('info', `${lvl * 3} misconfigurations detected this day`));
+    grid.appendChild(cell);
+  }
+}
+
+// ─── VULNERABILITY TABLE ─────────────────────────
+const vulns = [
+  { id:'CRIT-001', resource:'s3:::prod-media-assets', type:'Public Bucket', sev:'critical', score:9.8, status:'Open', fix:'Block public access' },
+  { id:'CRIT-002', resource:'iam::root-account', type:'Root Account Active', sev:'critical', score:9.5, status:'Open', fix:'Enable MFA & lock root' },
+  { id:'CRIT-003', resource:'rds:prod-postgres-01', type:'Unencrypted Storage', sev:'critical', score:8.9, status:'Open', fix:'Enable encryption at rest' },
+  { id:'CRIT-004', resource:'ec2:i-0xfe239ab', type:'SSH Open to 0.0.0.0/0', sev:'critical', score:8.7, status:'Assigned', fix:'Restrict SG inbound rules' },
+  { id:'CRIT-005', resource:'lambda:payment-svc', type:'Plaintext Secrets in Env', sev:'critical', score:8.5, status:'Open', fix:'Use AWS Secrets Manager' },
+  { id:'CRIT-006', resource:'eks:dev-cluster-1', type:'Privileged Container', sev:'critical', score:8.3, status:'In Progress', fix:'Set securityContext.privileged=false' },
+  { id:'CRIT-007', resource:'cloudtrail::all-regions', type:'CloudTrail Disabled', sev:'critical', score:8.1, status:'Open', fix:'Enable CloudTrail multi-region' },
+  { id:'HIGH-001', resource:'vpc:vpc-0xf82b3', type:'Flow Logs Disabled', sev:'high', score:7.4, status:'Open', fix:'Enable VPC Flow Logs' },
+  { id:'HIGH-002', resource:'iam::user/dev-bot', type:'Stale Access Keys', sev:'high', score:7.1, status:'Open', fix:'Rotate or delete keys' },
+  { id:'HIGH-003', resource:'eks:prod-cluster-1', type:'RBAC Not Enforced', sev:'high', score:6.9, status:'In Progress', fix:'Enable RBAC policy' },
+  { id:'HIGH-004', resource:'s3:::backup-store', type:'No Lifecycle Policy', sev:'high', score:6.4, status:'Open', fix:'Add S3 lifecycle rules' },
+  { id:'MED-001', resource:'s3:::log-archive-2024', type:'Versioning Disabled', sev:'medium', score:5.2, status:'Open', fix:'Enable S3 versioning' },
+  { id:'MED-002', resource:'lambda:auth-service', type:'Excessive IAM Role', sev:'medium', score:4.9, status:'Open', fix:'Apply least-privilege' },
+  { id:'MED-003', resource:'gce:prod-vm-01', type:'OS Patch Missing', sev:'medium', score:4.7, status:'Open', fix:'Apply security patches' },
+  { id:'LOW-001', resource:'cloudtrail:main-trail', type:'Log Validation Off', sev:'low', score:3.1, status:'Ignored', fix:'Enable log validation' },
+  { id:'LOW-002', resource:'sg:web-tier-sg', type:'Unused Security Group', sev:'low', score:2.4, status:'Open', fix:'Remove unused groups' },
+];
+
+let activeSevFilter = 'all';
+
+function filterSev(btn, sev) {
+  activeSevFilter = sev;
+  document.querySelectorAll('.filter-bar .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderVulnTable();
+}
+
+function renderVulnTable() {
+  const tbody = document.getElementById('vuln-table-body');
+  if (!tbody) return;
+  const filtered = activeSevFilter === 'all' ? vulns : vulns.filter(v => v.sev === activeSevFilter);
+  tbody.innerHTML = filtered.map(v => `
+    <tr onclick="openPanel('${v.id}','${v.resource}','${v.type}','${v.sev}')" style="transition:background 0.1s">
+      <td style="padding-left:16px"><input type="checkbox" style="accent-color:var(--blue)" onclick="event.stopPropagation()"></td>
+      <td class="resource-cell">${v.resource}</td>
+      <td style="font-size:13px">${v.type}</td>
+      <td><span class="badge badge-${v.sev}">${v.sev.toUpperCase()}</span></td>
+      <td class="score-cell" style="color:${v.score>=9?'var(--red)':v.score>=7?'var(--amber)':v.score>=5?'#EAB308':'var(--green)'}">${v.score}</td>
+      <td><span class="badge badge-${v.status==='Open'?'critical':v.status==='In Progress'?'info':v.status==='Assigned'?'high':'medium'}" style="font-size:10px">${v.status}</span></td>
+      <td style="font-size:12px;color:var(--text2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v.fix}</td>
+      <td><button class="filter-btn" style="padding:3px 8px;font-size:11px" onclick="event.stopPropagation();openPanel('${v.id}','${v.resource}','${v.type}','${v.sev}')">View →</button></td>
+    </tr>
+  `).join('');
+}
+
+// ─── SIDE PANEL ───────────────────────────────────
+function openPanel(id, resource, type, sev) {
+  document.getElementById('panel-title').textContent = type;
+  document.getElementById('panel-resource').textContent = resource;
+  document.getElementById('side-panel').classList.add('open');
+  document.getElementById('panel-overlay').classList.add('show');
+  document.querySelector('.panel-tab').click();
+}
+
+function closePanel() {
+  document.getElementById('side-panel').classList.remove('open');
+  document.getElementById('panel-overlay').classList.remove('show');
+}
+
+function switchTab(el, tabId) {
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('#side-panel [id^="tab-"]').forEach(t => t.style.display = 'none');
+  document.getElementById(tabId).style.display = 'block';
+}
+
+function autoRemediate() {
+  showToast('success', '⚡ Auto-remediation triggered!');
+  setTimeout(() => showToast('success', '✅ S3 public access blocked successfully'), 1800);
+  closePanel();
+}
+
+// ─── SCAN SIMULATION ──────────────────────────────
+let scanRunning = false;
+function startScan() {
+  if (scanRunning) return;
+  scanRunning = true;
+  document.getElementById('scan-status').textContent = 'Running';
+  document.getElementById('scan-status').className = 'badge badge-info';
+  addLog('info', 'Scan launched: AWS deep scan on S3, IAM');
+  addLog('ok', '✓ Authentication successful (us-east-1, us-west-2, eu-west-1)');
+
+  const steps = [
+    { bar:'disc-bar', badge:'disc-badge', label:'Scanning…', delay:0, log:'Enumerating 2,841 resources across 5 regions' },
+    { bar:null, badge:'pol-badge', label:'Analyzing…', delay:1800, log:'Evaluating 1,204 IAM policies & trust relationships' },
+    { bar:null, badge:'vuln-badge', label:'Matching…', delay:3600, log:'Cross-referencing CVE-2024 database (47,231 entries)' },
+    { bar:null, badge:'rep-badge', label:'Done ✓', delay:5400, log:'✓ Scan complete — 147 findings across 2,841 resources' },
+  ];
+
+  steps.forEach(s => {
+    setTimeout(() => {
+      document.getElementById(s.badge).textContent = s.label;
+      addLog(s.log.includes('✓') ? 'ok' : 'info', s.log);
+      if (s.bar) {
+        let w = 0;
+        const bar = document.getElementById(s.bar);
+        const fill = setInterval(() => { w += 3; bar.style.width = w + '%'; if (w >= 100) clearInterval(fill); }, 30);
+      }
+    }, s.delay);
+  });
+
+  setTimeout(() => {
+    document.getElementById('scan-status').textContent = 'Completed';
+    document.getElementById('scan-status').className = 'badge badge-low';
+    addLog('ok', '✓ Report saved: cloudguard-2025-05-02.json');
+    showToast('success', '✅ Scan complete — 147 findings detected');
+    scanRunning = false;
+  }, 7200);
+}
+
+let logTime = 3;
+function addLog(type, msg) {
+  const stream = document.getElementById('log-stream');
+  if (!stream) return;
+  const cls = type==='ok'?'log-ok':type==='warn'?'log-warn':type==='err'?'log-err':'log-info';
+  const t = String(logTime).padStart(2,'0');
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-time">[00:00:${t}]</span> <span class="${cls}">${msg}</span>`;
+  stream.appendChild(line);
+  stream.scrollTop = stream.scrollHeight;
+  logTime += Math.floor(Math.random()*3)+1;
+}
+
+// ─── CHARTS ──────────────────────────────────────
+function drawCharts() {
+  drawTrend(); drawDist(); drawCloudBar();
+}
+
+function drawTrend() {
+  const canvas = document.getElementById('trend-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const parent = canvas.parentElement;
+  canvas.width = parent.clientWidth - 32;
+  canvas.height = 140;
+  const w = canvas.width, h = canvas.height;
+
+  const critData = [9,8,10,8,7,9,8,7,9,8,7,7,8,7,8,9,7,7,7];
+  const totalData = [120,134,128,145,141,138,147,152,139,130,122,115,119,128,133,141,150,145,147];
+  const max = Math.max(...totalData), min = Math.min(...totalData);
+
+  ctx.clearRect(0,0,w,h);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+  ctx.lineWidth = 1;
+  for (let i=0;i<5;i++) {
+    const y = 10+i*((h-30)/4);
+    ctx.beginPath(); ctx.moveTo(40,y); ctx.lineTo(w-10,y); ctx.stroke();
+    ctx.fillStyle='rgba(148,163,184,0.4)'; ctx.font='9px Space Grotesk';
+    ctx.textAlign='right';
+    ctx.fillText(Math.round(max - i*(max-min)/4), 36, y+4);
+  }
+
+  // X labels
+  const labels=['Jan','','Feb','','Mar','','Apr','','May','','Jun','','Jul','','Aug','','Sep','','Oct'];
+  ctx.fillStyle='rgba(148,163,184,0.4)'; ctx.font='9px Space Grotesk'; ctx.textAlign='center';
+  const pts = totalData.map((v,i)=>({ x:40+(i/(totalData.length-1))*(w-50), y:h-20-((v-min)/(max-min))*(h-50) }));
+
+  // Gradient fill
+  const grad = ctx.createLinearGradient(0,0,0,h);
+  grad.addColorStop(0,'rgba(59,130,246,0.25)');
+  grad.addColorStop(1,'rgba(59,130,246,0)');
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x,h-20);
+  pts.forEach(p=>ctx.lineTo(p.x,p.y));
+  ctx.lineTo(pts[pts.length-1].x,h-20);
+  ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+
+  // Line
+  ctx.beginPath();
+  pts.forEach((p,i)=>i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y));
+  ctx.strokeStyle='#3B82F6'; ctx.lineWidth=2; ctx.stroke();
+
+  // Dots
+  pts.forEach((p,i) => {
+    if (i % 4 === 0 || i === pts.length-1) {
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,3,0,Math.PI*2);
+      ctx.fillStyle=i===pts.length-1?'#3B82F6':'rgba(59,130,246,0.5)';
+      ctx.fill();
+    }
+  });
+
+  // Last label
+  const last=pts[pts.length-1];
+  ctx.fillStyle='#E2E8F0'; ctx.font='bold 11px Space Grotesk'; ctx.textAlign='center';
+  ctx.fillText('147',last.x,last.y-10);
+}
+
+function drawDist() {
+  const canvas = document.getElementById('dist-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.parentElement.clientWidth - 32;
+  canvas.height = 140;
+  const w=canvas.width, h=canvas.height;
+  const cx=70, cy=h/2, r=Math.min(cy,60)-8;
+
+  const slices=[
+    {val:7, color:'#EF4444', label:'Critical'},
+    {val:28, color:'#F59E0B', label:'High'},
+    {val:61, color:'#EAB308', label:'Medium'},
+    {val:51, color:'#22C55E', label:'Low'},
+  ];
+  const total=slices.reduce((a,s)=>a+s.val,0);
+  let angle=-Math.PI/2;
+
+  ctx.clearRect(0,0,w,h);
+
+  slices.forEach(s=>{
+    const sweep=(s.val/total)*Math.PI*2;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,angle,angle+sweep);
+    ctx.closePath(); ctx.fillStyle=s.color; ctx.fill();
+    ctx.strokeStyle=lightMode?'#fff':'#0D1220'; ctx.lineWidth=2; ctx.stroke();
+    angle+=sweep;
+  });
+
+  // Donut hole
+  ctx.beginPath(); ctx.arc(cx,cy,r*0.52,0,Math.PI*2);
+  ctx.fillStyle=lightMode?'#fff':'#0D1220'; ctx.fill();
+  ctx.fillStyle=lightMode?'#0F172A':'#E2E8F0'; ctx.font='bold 18px Syne'; ctx.textAlign='center';
+  ctx.fillText('147',cx,cy+5);
+  ctx.fillStyle='rgba(148,163,184,0.6)'; ctx.font='9px Space Grotesk';
+  ctx.fillText('TOTAL',cx,cy+18);
+
+  // Legend
+  slices.forEach((s,i)=>{
+    const lx=160, ly=18+i*28;
+    ctx.fillStyle=s.color;
+    ctx.beginPath(); ctx.arc(lx+6,ly+5,5,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle=lightMode?'#475569':'#94A3B8';
+    ctx.font='11px Space Grotesk'; ctx.textAlign='left';
+    ctx.fillText(`${s.label}`,lx+16,ly+9);
+    ctx.fillStyle=lightMode?'#0F172A':'#E2E8F0'; ctx.font='bold 11px Space Grotesk';
+    ctx.fillText(`${s.val}`,w-16,ly+9); ctx.textAlign='right';
+    const pct=Math.round(s.val/total*100);
+    ctx.fillStyle='rgba(148,163,184,0.5)'; ctx.font='10px Space Grotesk'; ctx.textAlign='left';
+    ctx.fillText(`${pct}%`,lx+16+60,ly+9);
+  });
+}
+
+function drawCloudBar() {
+  const canvas=document.getElementById('cloud-chart');
+  if (!canvas) return;
+  const ctx=canvas.getContext('2d');
+  canvas.width=canvas.parentElement.clientWidth-32;
+  canvas.height=120;
+  const w=canvas.width, h=canvas.height;
+
+  const providers=[
+    {name:'AWS', vals:[44,28,17], total:89},
+    {name:'GCP', vals:[18,10,5], total:33},
+    {name:'Azure', vals:[12,8,4], total:24},
+  ];
+  const colors=['#EF4444','#F59E0B','#22C55E'];
+  const bw=(w-120)/providers.length;
+  const maxVal=100;
+
+  ctx.clearRect(0,0,w,h);
+
+  // Grid
+  [25,50,75,100].forEach(v=>{
+    const y=h-25-(v/maxVal)*(h-45);
+    ctx.strokeStyle='rgba(255,255,255,0.04)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(80,y); ctx.lineTo(w-10,y); ctx.stroke();
+    ctx.fillStyle='rgba(148,163,184,0.4)'; ctx.font='9px Space Grotesk'; ctx.textAlign='right';
+    ctx.fillText(v,74,y+4);
+  });
+
+  providers.forEach((p,pi)=>{
+    const x=80+pi*bw;
+    let y=h-25;
+    p.vals.forEach((v,vi)=>{
+      const bh=(v/maxVal)*(h-45);
+      ctx.fillStyle=colors[vi];
+      ctx.fillRect(x+bw*0.2,y-bh,bw*0.6,bh);
+      y-=bh;
+    });
+    ctx.fillStyle=lightMode?'#475569':'#94A3B8'; ctx.font='11px Space Grotesk'; ctx.textAlign='center';
+    ctx.fillText(p.name,x+bw/2,h-8);
+    ctx.fillStyle=lightMode?'#0F172A':'#E2E8F0'; ctx.font='bold 12px Space Grotesk';
+    ctx.fillText(p.total,x+bw/2,y-8);
+  });
+
+  // Legend
+  ['Critical+High','Medium','Low'].forEach((l,i)=>{
+    const lx=w-180+i*60;
+    ctx.fillStyle=colors[i]; ctx.fillRect(lx,8,10,10);
+    ctx.fillStyle='rgba(148,163,184,0.7)'; ctx.font='9px Space Grotesk'; ctx.textAlign='left';
+    ctx.fillText(l,lx+13,17);
+  });
+}
+
+// ─── CLI TERMINAL ─────────────────────────────────
+function runCmd(e, input) {
+  if (e.key !== 'Enter') return;
+  const cmd = input.value.trim(); if (!cmd) return;
+  const body = document.getElementById('terminal-body');
+
+  const line = document.createElement('div');
+  line.className = 'term-line';
+  line.innerHTML = `<span class="term-prompt">➜ </span><span class="term-cmd">${cmd}</span>`;
+  input.parentElement.before(line);
+
+  const resp = document.createElement('div');
+  resp.className = 'term-line term-out';
+  if (cmd.includes('scan'))       resp.innerHTML = `<span class="log-ok">✓ Scan initiated. Use --watch for live output.</span>`;
+  else if (cmd.includes('list'))  resp.innerHTML = `<span class="log-ok">ID       Severity  Score  Resource\nCRIT-001 CRITICAL  9.8    s3:::prod-media-assets\nCRIT-002 CRITICAL  9.5    iam::root-account\nCRIT-003 CRITICAL  8.9    rds:prod-postgres-01</span>`;
+  else if (cmd.includes('fix'))   resp.innerHTML = `<span class="log-ok">✓ Fix applied. 1 resource updated.</span>`;
+  else if (cmd.includes('help'))  resp.innerHTML = `<span class="log-info">Commands: scan, list, fix, report, export, configure, status</span>`;
+  else if (cmd.includes('status'))resp.innerHTML = `<span class="log-ok">Status: 147 findings open | Last scan: 4m ago | Coverage: 2,841 resources</span>`;
+  else resp.innerHTML = `<span class="log-warn">Unknown command: ${cmd}. Type 'help' for options.</span>`;
+
+  input.parentElement.before(resp);
+  input.value = '';
+  body.scrollTop = body.scrollHeight;
+}
+
+// ─── API TESTER ───────────────────────────────────
+function sendApiRequest() {
+  const resp = document.getElementById('api-response');
+  resp.textContent = '// Sending request…';
+  resp.style.color = 'var(--text3)';
+  setTimeout(() => {
+    resp.style.color = '';
+    resp.textContent = JSON.stringify({
+      status: 200, ok: true,
+      total: 7, page: 1, limit: 20,
+      data: [
+        { id:'CRIT-001', severity:'critical', score:9.8, provider:'aws', resource:'s3:::prod-media-assets', status:'open', detected:'2025-05-02T09:14:00Z' },
+        { id:'CRIT-002', severity:'critical', score:9.5, provider:'aws', resource:'iam::root-account',        status:'open', detected:'2025-05-02T08:52:00Z' },
+        { id:'CRIT-003', severity:'critical', score:8.9, provider:'aws', resource:'rds:prod-postgres-01',     status:'open', detected:'2025-05-02T08:10:00Z' }
+      ],
+      meta: { provider:'aws', filter:'severity:critical', response_ms: 48 }
+    }, null, 2);
+    showToast('success', '200 OK — 7 critical findings returned (48ms)');
+  }, 700);
+}
+
+// ─── COPY ─────────────────────────────────────────
+function copyCode(btn) {
+  const block = btn.closest('.code-block');
+  const text = block.cloneNode(true);
+  text.querySelectorAll('button').forEach(b=>b.remove());
+  navigator.clipboard.writeText(text.textContent.trim()).catch(()=>{});
+  btn.textContent = 'Copied!';
+  setTimeout(()=>btn.textContent='Copy', 1500);
+  showToast('success', 'Copied to clipboard!');
+}
+
+// ─── TOAST ───────────────────────────────────────
+function showToast(type, msg) {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  const icons = { success:'✅', error:'❌', info:'ℹ️', warning:'⚠️' };
+  t.innerHTML = `<span>${icons[type]||'●'}</span><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => { t.style.opacity='0'; t.style.transform='translateX(60px)'; setTimeout(()=>t.remove(),300); }, 3200);
+}
+
+// ─── AI COPILOT ──────────────────────────────────
+function toggleCopilot() {
+  document.getElementById('copilot-panel').classList.toggle('show');
+}
+
+const aiResponses = {
+  explain: 'The S3 public access vulnerability (CRIT-001) means your bucket allows any internet user to read or write objects. This is CVSS 9.8 — an attacker could exfiltrate 2.3TB of data, plant malicious files, or wipe objects. Immediate remediation required.',
+  fix: 'Quick fix:\n`aws s3api put-public-access-block --bucket prod-media-assets --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true`\n\nOr click the Auto-Remediate button in the issue panel.',
+  summary: 'Security score: 73/100 (Medium risk). Top concerns: 7 critical issues — S3 public access, IAM root usage, unencrypted RDS, SSH wide-open SG. HIPAA compliance at 45% needs urgent attention. 12 issues remediated this week (↑4% improvement). Focus on IAM hardening next.',
+  iam: 'IAM issues found: root account active (no MFA), dev-bot user with 90-day-stale access keys, 3 roles with wildcard (*) permissions. Recommendation: enforce MFA, rotate keys via `aws iam update-access-key`, apply least-privilege policies.',
+  default: "I can help you understand vulnerabilities, suggest fixes, or summarize your security posture. Try: 'explain CRIT-001', 'how to fix IAM issues', 'summary', or 'what is my compliance status'."
+};
+
+function sendCopilot() {
+  const input = document.getElementById('copilot-input');
+  const msgs = document.getElementById('copilot-msgs');
+  const q = input.value.trim(); if (!q) return;
+
+  const um = document.createElement('div');
+  um.className = 'copilot-msg user'; um.textContent = q;
+  msgs.appendChild(um); input.value = '';
+
+  const typing = document.createElement('div');
+  typing.className = 'copilot-msg ai'; typing.textContent = '…';
+  typing.style.opacity = '0.5';
+  msgs.appendChild(typing);
+  msgs.scrollTop = msgs.scrollHeight;
+
+  setTimeout(() => {
+    const lq = q.toLowerCase();
+    let resp = lq.includes('explain') ? aiResponses.explain
+      : lq.includes('fix') ? aiResponses.fix
+      : (lq.includes('summary')||lq.includes('risk')||lq.includes('posture')) ? aiResponses.summary
+      : lq.includes('iam') ? aiResponses.iam
+      : aiResponses.default;
+    typing.textContent = resp;
+    typing.style.opacity = '1';
+    msgs.scrollTop = msgs.scrollHeight;
+  }, 700);
+}
+
+// ─── KEYBOARD SHORTCUT ───────────────────────────
+document.addEventListener('keydown', e => {
+  if ((e.metaKey||e.ctrlKey) && e.key==='k') {
+    e.preventDefault();
+    document.querySelector('.search-box input').focus();
+  }
+  if (e.key==='Escape') { closePanel(); document.getElementById('notif-dropdown').style.display='none'; }
+});
+
+// ─── TIMESTAMP ───────────────────────────────────
+document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+
+// ─── INIT ─────────────────────────────────────────
+initHeatmap();
+renderVulnTable();
+animateCounters();
+setTimeout(initSparklines, 200);
+
+// Live update every 30s
+setInterval(() => {
+  const el = document.getElementById('last-updated');
+  if (el) el.textContent = new Date().toLocaleTimeString();
+}, 10000);
+
+// ─── CONFIG CHIPS ────────────────────────────────
+document.querySelectorAll('.config-chip').forEach(chip => {
+  chip.addEventListener('click', () => chip.classList.toggle('sel'));
+});
+
+// ─── CLOUD SELECTOR ──────────────────────────────
+document.querySelectorAll('.cloud-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.cloud-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    showToast('info', `Filtered to: ${this.textContent}`);
+  });
+});
+
+// ─── RESIZE CHARTS ──────────────────────────────
+window.addEventListener('resize', () => {
+  if (document.getElementById('screen-reports').classList.contains('active')) drawCharts();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  cloudguard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cloudguard:latest
+    container_name: cloudguard-dashboard
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Kolkata
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "com.cloudguard.version=1.0.0"
+      - "com.cloudguard.maintainer=N. Ramesh"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ─── OPTIONAL: Add a reverse proxy ────────────────
+# Uncomment if you want HTTPS via Traefik:
+#
+#  traefik:
+#    image: traefik:v3.0
+#    command:
+#      - "--api.insecure=true"
+#      - "--providers.docker=true"
+#      - "--entrypoints.web.address=:80"
+#      - "--entrypoints.websecure.address=:443"
+#      - "--certificatesresolvers.le.acme.tlschallenge=true"
+#      - "--certificatesresolvers.le.acme.email=ramesh@company.io"
+#      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+#    ports:
+#      - "80:80"
+#      - "443:443"
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock:ro
+#      - letsencrypt:/letsencrypt
+#
+# volumes:
+#   letsencrypt:
