@@ -574,7 +574,7 @@ git push origin feature/your-feature-name
 
 ## 🐛 Reporting Issues
 
-Found a bug? [Open an issue](https://github.com/nramesh/cloudguard/issues/new?template=bug_report.md) with:
+Found a bug? [Open an issue](https://github.com/N-RameshKernel/cloudguard/issues/new?template=bug_report.md) with:
 
 1. Browser + version
 2. Steps to reproduce
@@ -600,8 +600,8 @@ We will respond within 48 hours and provide a fix within 14 days for confirmed i
 ### N. Ramesh
 **Lead Developer & Architect**
 
-- 🔗 GitHub: [@nramesh](https://github.com/nramesh)
-- 💼 LinkedIn: [linkedin.com/in/nramesh](https://linkedin.com/in/nramesh)
+- 🔗 GitHub: [@nramesh](https://github.com/N-RameshKernel/)
+- 💼 LinkedIn: [linkedin.com/in/nramesh](www.linkedin.com/in/ramesh--n)
 - 📧 Email: ramesh@company.io
 - 🌐 Role: Admin · Cloud Security Engineer
 
@@ -642,7 +642,7 @@ Made with ⚡ by **N. Ramesh**
 
 ⭐ Star this repo if CloudGuard helped you!
 
-[![GitHub Stars](https://img.shields.io/github/stars/nramesh/cloudguard?style=social)](https://github.com/nramesh/cloudguard)
-[![GitHub Forks](https://img.shields.io/github/forks/nramesh/cloudguard?style=social)](https://github.com/nramesh/cloudguard/fork)
+[![GitHub Stars](https://img.shields.io/github/stars/N-RameshKernel/cloudguard?style=social)](https://github.com/N-RameshKernel/cloudguard)
+[![GitHub Forks](https://img.shields.io/github/forks/N-RameshKernel/cloudguard?style=social)](https://github.com/N-RameshKernel/cloudguard/fork)
 
 </div>
