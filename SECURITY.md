@@ -11,7 +11,7 @@
 
 If you discover a security vulnerability in **CloudGuard**, please **do not** open a public GitHub issue.
 
-Instead, please email **security@cloudguard.io** with:
+Instead, please email **ramesh.n010101@gmail.com** with:
 
 1. A description of the vulnerability
 2. Steps to reproduce the issue
