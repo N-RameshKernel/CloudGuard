@@ -1,509 +1,505 @@
+[README.md](https://github.com/user-attachments/files/33025527/README.md)
 <div align="center">
 
-See the risk behind every cloud.
+<img src="https://capsule-render.vercel.app/api?type=waving&height=180&color=0:05080f,50:0b1b33,100:0d6efd&text=CLOUDGUARD%202.0&fontColor=ffffff&fontSize=48&fontAlignY=38&desc=MULTI-CLOUD%20SECURITY%20OPERATIONS&descAlignY=62&descSize=16&animation=fadeIn" width="100%"/>
 
-A security operations workspace for discovering cloud exposure, investigating findings, prioritizing vulnerabilities, and maintaining a unified security posture across AWS, Azure, and Google Cloud.
+# 🛡️ CloudGuard 2.0
 
+### **See the risk behind every cloud.**
 
+<p>
+  <strong>A dark-mode security operations workspace for cloud exposure, findings, vulnerability intelligence, compliance, and multi-cloud visibility.</strong>
+</p>
 
+<p>
+  <a href="#-why-cloudguard">Why CloudGuard</a> •
+  <a href="#-product-tour">Product Tour</a> •
+  <a href="#-security-analytics">Analytics</a> •
+  <a href="#-architecture">Architecture</a> •
+  <a href="#-quick-start">Quick Start</a>
+</p>
 
+<br/>
 
+<img src="https://img.shields.io/badge/CLOUDGUARD-2.0-0B84FF?style=for-the-badge&logo=shield&logoColor=white"/>
+<img src="https://img.shields.io/badge/CLOUD_SECURITY-CNTRL-07111F?style=for-the-badge&logo=icloud&logoColor=60A5FA"/>
+<img src="https://img.shields.io/badge/MULTI--CLOUD-AWS%20%7C%20AZURE%20%7C%20GCP-101827?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/UI-DARK%20MODE-05080F?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/STATUS-ACTIVE-16C784?style=for-the-badge"/>
+
+<br/><br/>
+
+<img src="https://img.shields.io/badge/SECURITY-FIRST-00D084?style=flat-square"/>
+<img src="https://img.shields.io/badge/ANALYTICS-REAL--TIME-4DA3FF?style=flat-square"/>
+<img src="https://img.shields.io/badge/COMPLIANCE-CIS%20%7C%20SOC2%20%7C%20PCI%20%7C%20NIST-A78BFA?style=flat-square"/>
+<img src="https://img.shields.io/badge/VULN_INTEL-NVD%20%7C%20CISA-FF6B7A?style=flat-square"/>
 
 </div>
 
-Overview
+<br/>
+
+> [!IMPORTANT]
+> **CloudGuard 2.0** is presented as a security-operations product concept and UI showcase. Sample metrics and findings shown in the interface are illustrative unless backed by a connected production data source.
+
+---
+
+## ⚡ TL;DR
+
+<table>
+<tr>
+<td width="55%">
+
+### One workspace. Every signal.
+
+CloudGuard brings fragmented cloud-security signals into one focused command center.
 
-CloudGuard is a multi-cloud security command center designed to bring cloud exposure, security findings, vulnerability intelligence, compliance posture, provider inventory, and operational activity into one focused workspace.
+**Connect → Discover → Analyze → Prioritize → Remediate → Verify**
 
-The interface is built around a simple security workflow:
+It is designed around the way security teams actually work:
 
-Connect → Discover → Analyze → Prioritize → Remediate → Verify
+- 🔭 **Exposure visibility**
+- 🚨 **Finding prioritization**
+- ☁️ **Multi-cloud inventory**
+- 🧠 **Vulnerability intelligence**
+- 📋 **Compliance posture**
+- 🧾 **Operational activity**
+- 🔐 **Identity & workspace security**
 
-The current UI showcase includes a CloudGuard 2.0 workspace with:
+</td>
+<td width="45%">
 
-Security overview and exposure metrics
+### 🛰️ Security Surface
 
-Findings investigation and filtering
+```text
+AWS ─────┐
+Azure ───┤
+GCP ─────┤
+OCI ─────┼──► CloudGuard
+IBM ─────┤       │
+DO ──────┤       ├── Exposure
+Alibaba ─┘       ├── Findings
+                 ├── CVEs
+                 ├── Compliance
+                 └── Audit
+```
 
-Multi-cloud inventory
+</td>
+</tr>
+</table>
 
-Vulnerability intelligence feeds
+---
 
-Compliance posture tracking
+# 🎯 Why CloudGuard?
 
-Workspace activity/audit view
+<table>
+<tr>
+<th>☁️ Problem</th>
+<th>🛡️ CloudGuard Response</th>
+</tr>
+<tr>
+<td>Cloud environments are fragmented</td>
+<td><strong>Unified multi-cloud workspace</strong></td>
+</tr>
+<tr>
+<td>Security findings become noise</td>
+<td><strong>Severity + status + resource context</strong></td>
+</tr>
+<tr>
+<td>Vulnerability feeds live separately</td>
+<td><strong>NVD + CISA intelligence surface</strong></td>
+</tr>
+<tr>
+<td>Compliance becomes spreadsheet work</td>
+<td><strong>Framework-level posture visualization</strong></td>
+</tr>
+<tr>
+<td>Cloud onboarding is operationally heavy</td>
+<td><strong>Dedicated provider connection flow</strong></td>
+</tr>
+<tr>
+<td>Analysts need operational history</td>
+<td><strong>Workspace activity / audit surface</strong></td>
+</tr>
+</table>
 
-Provider connection workflows
+---
 
-Workspace and identity settings
+# 🧬 Product DNA
 
-Sample-mode security analytics
+<div align="center">
 
-AI/security-operations oriented product surfaces
+| 🔭 VISIBILITY | 🚨 PRIORITY | 🧠 INTELLIGENCE | 📋 GOVERNANCE |
+|:---:|:---:|:---:|:---:|
+| Cloud Inventory | Findings | Vulnerability Intel | Compliance |
+| Exposure Index | Severity | NVD / CISA | CIS / SOC 2 |
+| Provider Coverage | Status | CVE Context | PCI / HIPAA |
+| Risk Trends | Resources | Exploit Status | NIST CSF |
 
-Note: The screenshots below represent the current CloudGuard 2.0 UI showcase. The repository baseline included with this project contains a documented zero-dependency HTML/CSS/JavaScript implementation and integration-ready API documentation. Backend/authentication/database capabilities shown in newer UI screenshots should be treated as the current product direction unless their implementation is present in your local branch.
+</div>
 
-Why CloudGuard?
+---
 
-Security problem
+# 🖥️ Product Tour
 
-CloudGuard approach
+## 01 — Authentication
 
-Cloud security data is fragmented
+The entry experience keeps the product intentionally minimal: brand, security positioning, provider-neutral authentication, and a sample workspace path.
 
-Unified workspace for multiple cloud providers
+<div align="center">
 
-Findings are difficult to prioritize
+<img src="assets/screenshots/01-authentication.png" width="96%" alt="CloudGuard 2.0 authentication screen"/>
 
-Exposure and severity-oriented views
+</div>
 
-Vulnerability feeds are disconnected from posture
+---
 
-Dedicated vulnerability intelligence workspace
+## 02 — Security Overview
 
-Compliance is hard to visualize
+The command center surfaces the highest-value signals first:
 
-Framework-level posture cards and coverage metrics
+- Exposure Index
+- Open Findings
+- Critical Exposure
+- Connected Accounts
+- Exposure trend
+- Severity distribution
+- Cloud posture
 
-Provider onboarding is operationally heavy
+<div align="center">
 
-Dedicated connection and connector workflows
+<img src="assets/screenshots/02-overview.png" width="96%" alt="CloudGuard 2.0 security overview dashboard"/>
 
-Security teams need an audit trail
+</div>
 
-Workspace activity and operational events
+---
 
-Analysts need developer-friendly tooling
+## 03 — Findings
 
-API/CLI and integration-ready workflows
+A focused investigation surface for searching, filtering, prioritizing, and tracking cloud-security findings.
 
-Product Surface
+<div align="center">
 
-1. Security Overview
+<img src="assets/screenshots/03-findings.png" width="96%" alt="CloudGuard 2.0 findings workspace"/>
 
-The overview acts as the CloudGuard command center, surfacing exposure, open findings, critical exposure, connected-account coverage, risk trends, severity distribution, and cloud posture.
+</div>
 
-Key concepts:
+### Example finding signals
 
-Exposure Index
+```text
+CRITICAL  → S3 bucket allows public reads
+HIGH      → Inbound SSH open to the internet
+HIGH      → Privileged workload identity binding
+MEDIUM    → RDS storage is not encrypted
+MEDIUM    → Audit log retention below policy
+CRITICAL  → Managed database accepts public traffic
+```
 
-Open Findings
+---
 
-Critical Exposure
+## 04 — Cloud Inventory
 
-Connected Accounts
+A normalized provider surface for AWS, Azure, Google Cloud and additional webhook/ingestion providers.
 
-Exposure-over-time analytics
+<div align="center">
 
-Findings by severity
+<img src="assets/screenshots/04-cloud-inventory.png" width="96%" alt="CloudGuard 2.0 cloud inventory"/>
 
-Cloud posture
+</div>
 
-2. Findings
+### Provider surface
 
-The findings workspace is designed for investigation and prioritization.
+`AWS` · `Azure` · `Google Cloud` · `Oracle Cloud` · `Alibaba Cloud` · `IBM Cloud` · `DigitalOcean` · `Custom`
 
-Capabilities represented in the UI:
+---
 
-Finding search
+## 05 — Provider Connection
 
-Severity filtering
+Cloud onboarding is presented as a controlled workflow instead of dumping credentials into a dashboard.
 
-Cloud/provider filtering
+<div align="center">
 
-Status filtering
+<img src="assets/screenshots/05-provider-connection.png" width="82%" alt="CloudGuard 2.0 provider connection modal"/>
 
-Resource context
+</div>
 
-Severity classification
+> 🔐 **Security principle:** use dedicated read-only cloud roles wherever possible. Never commit cloud credentials, API keys, OAuth secrets, or private keys to the frontend or Git history.
 
-Finding status
+---
 
-Last-seen timestamps
+## 06 — Vulnerability Intelligence
 
-Finding detail navigation
+A dedicated intelligence layer for external vulnerability signals, including NVD and CISA KEV concepts.
 
-Example finding categories include:
+<div align="center">
 
-S3 bucket allows public reads
-Inbound SSH open to the internet
-Privileged workload identity binding
-RDS storage is not encrypted
-Audit log retention below policy
-Managed database accepts public traffic
+<img src="assets/screenshots/06-vulnerability-intelligence.png" width="96%" alt="CloudGuard 2.0 vulnerability intelligence"/>
 
-3. Cloud Inventory
+</div>
 
-CloudGuard provides a normalized view of connected and connectable cloud environments.
+```text
+NVD ─────────────┐
+                 ├──► Vulnerability Feed ──► Severity ──► Analyst
+CISA KEV ────────┘             │
+                               ├── CVE
+                               ├── Product
+                               ├── Exploit status
+                               └── Published date
+```
 
-Supported provider surfaces shown in the UI include:
+---
 
-AWS
+## 07 — Compliance Posture
 
-Microsoft Azure
+Framework posture is surfaced visually so analysts can immediately see where attention is needed.
 
-Google Cloud
+<div align="center">
 
-Oracle Cloud Infrastructure
+<img src="assets/screenshots/07-compliance.png" width="96%" alt="CloudGuard 2.0 compliance posture"/>
 
-Alibaba Cloud
+</div>
 
-IBM Cloud
+> The percentages shown above are **sample-mode UI values** from the provided showcase and should not be interpreted as independent certification or audit evidence.
 
-DigitalOcean
+---
 
-Custom/other cloud sources
+## 08 — Activity Log
 
-The inventory view separates native read-only provider connectors from normalized finding ingestion/webhook workflows.
+A dedicated operational timeline for workspace-scoped events such as cloud connections, synchronization, and finding updates.
 
-4. Vulnerability Intelligence
+<div align="center">
 
-The vulnerability intelligence workspace brings external security intelligence into the same operational environment.
+<img src="assets/screenshots/08-activity-log.png" width="96%" alt="CloudGuard 2.0 activity log"/>
 
-The UI includes concepts such as:
+</div>
 
-NVD
+---
 
-CISA KEV
+## 09 — Workspace Settings
 
-Feed records
+Identity, credential protection, organization isolation, persistence, and workspace controls in one place.
 
-Known exploited vulnerabilities
+<div align="center">
 
-CVSS severity
+<img src="assets/screenshots/09-settings.png" width="96%" alt="CloudGuard 2.0 workspace settings"/>
 
-Product context
+</div>
 
-Exploit status
+---
 
-Published date
+# 📊 Security Analytics
 
-External references
+## Finding Severity
 
-5. Compliance Posture
-
-CloudGuard visualizes policy alignment across security frameworks.
-
-Current UI examples include:
-
-Framework
-
-Sample mapped posture
-
-CIS Cloud Foundations
-
-88%
-
-SOC 2 · Security
-
-83%
-
-PCI DSS 4.0
-
-91%
-
-HIPAA Security Rule
-
-85%
-
-NIST CSF 2.0
-
-80%
-
-These values are sample-mode UI values shown in the screenshots, not an independent audit or certification claim.
-
-6. Activity Log
-
-The activity workspace provides a dedicated place for workspace-scoped operational events, including the conceptual history of cloud connections, synchronization, and finding updates.
-
-7. Workspace Settings
-
-The settings surface covers identity, security, persistence, credentials, organization isolation, and workspace controls.
-
-The current UI showcase includes:
-
-Google OpenID Connect
-
-Microsoft identity platform
-
-MongoDB Atlas status
-
-Encrypted cloud credentials
-
-Organization isolation
-
-Workspace identity
-
-Sign-out controls
-
-Deployment/provider checklist
-
-Security Analytics
-
-CloudGuard is designed around security analytics rather than simply presenting raw infrastructure data.
-
-Sample-mode findings distribution
-
-The supplied UI screenshot shows six active findings distributed evenly across three severity levels:
-
+```mermaid
 pie showData
-    title Sample Findings by Severity
+    title CloudGuard Sample Findings
     "Critical" : 2
     "High" : 2
     "Medium" : 2
     "Low" : 0
+```
 
-Sample compliance posture
+## Compliance Snapshot
 
+```mermaid
 xychart-beta
     title "Sample Compliance Posture"
-    x-axis [CIS, SOC2, PCI-DSS, HIPAA, NIST]
+    x-axis ["CIS", "SOC2", "PCI-DSS", "HIPAA", "NIST"]
     y-axis "Mapped %" 0 --> 100
     bar [88, 83, 91, 85, 80]
+```
 
-Security signal model
+## Exposure Model
 
-A practical CloudGuard-style exposure model can be represented as:
-
-Exposure
-   │
-   ├── Severity
-   ├── Exploitability
-   ├── Asset Reachability
-   ├── Provider Context
-   ├── Compliance Impact
-   └── Recency
-          │
-          ▼
-    Risk Prioritization
-          │
-          ├── Critical
-          ├── High
-          ├── Medium
-          └── Low
-
-This is a conceptual product model, not a claim that the current static frontend executes this exact formula.
-
-Architecture
-
-Current documented frontend architecture
-
-The repository baseline intentionally uses a single-file, zero-dependency frontend. HTML structure, CSS, JavaScript state, interactions, and Canvas-based analytics live in index.html.
-
+```mermaid
 flowchart LR
-    U[Security Analyst] --> UI[CloudGuard Web UI]
-    UI --> NAV[Screen Navigation]
-    UI --> STATE[Client-side State]
-    UI --> VIEWS[Security Views]
+    A[Cloud Assets] --> B[Security Signals]
+    B --> C{Risk Engine}
+    C --> D[Severity]
+    C --> E[Exploitability]
+    C --> F[Reachability]
+    C --> G[Compliance Impact]
+    C --> H[Recency]
+    D & E & F & G & H --> I[Risk Priority]
+    I --> J[Analyst Action]
+    J --> K[Verification]
+```
 
-    VIEWS --> O[Overview]
-    VIEWS --> F[Findings]
-    VIEWS --> C[Cloud Inventory]
-    VIEWS --> V[Vulnerability Intelligence]
-    VIEWS --> CP[Compliance]
-    VIEWS --> A[Activity]
-    VIEWS --> S[Settings]
+---
 
-    STATE --> FILTERS[Filters & Controls]
-    STATE --> TOAST[Notifications]
-    STATE --> COPILOT[AI Copilot UI]
+# 🧠 Security Workflow
 
-    UI --> CHARTS[Canvas Analytics]
-
-Security operations flow
-
+```mermaid
 flowchart TD
-    CONNECT[Connect Cloud Sources] --> DISCOVER[Discover Assets & Findings]
-    DISCOVER --> NORMALIZE[Normalize Security Signals]
-    NORMALIZE --> ANALYZE[Analyze Exposure]
-    ANALYZE --> PRIORITIZE[Prioritize Risk]
-    PRIORITIZE --> REMEDIATE[Remediation Workflow]
-    REMEDIATE --> VERIFY[Verify & Track]
-    VERIFY --> AUDIT[Activity / Audit Trail]
+    A["☁️ Connect Cloud"] --> B["🔎 Discover Assets"]
+    B --> C["🧩 Normalize Findings"]
+    C --> D["📊 Analyze Exposure"]
+    D --> E["🚨 Prioritize Risk"]
+    E --> F["🛠️ Remediation"]
+    F --> G["✅ Verify"]
+    G --> H["🧾 Audit Trail"]
+    H --> D
+```
 
-Project Structure
+---
 
-CloudGuard/
-├── index.html                 # Main zero-dependency application
-├── README.md                  # Project documentation
-├── package.json               # Local development / validation scripts
-├── Dockerfile                 # Container deployment
-├── docker-compose.yml         # Container orchestration
-├── nginx.conf                 # Nginx configuration
-├── LICENSE
-├── SECURITY.md
-├── CONTRIBUTING.md
-├── CODE_OF_CONDUCT.md
-├── CHANGELOG.md
-│
-├── docs/
-│   ├── ARCHITECTURE.md        # Architecture and design decisions
-│   ├── API.md                 # Backend/API integration guide
-│   ├── DEPLOYMENT.md          # Deployment options
-│   └── INTEGRATIONS.md        # DevSecOps integration examples
-│
-└── assets/
-    └── screenshots/           # Product screenshots
+# 🏗️ Architecture
 
-Tech Stack
+The documented repository baseline is intentionally lightweight: a zero-dependency browser implementation with HTML, CSS, JavaScript state, interactions, and Canvas-based analytics.
 
-Frontend
+```mermaid
+flowchart TB
+    USER["Security Analyst"]
 
-Technology
+    subgraph UI["CloudGuard Web Workspace"]
+        NAV["Navigation"]
+        OVERVIEW["Overview"]
+        FINDINGS["Findings"]
+        INVENTORY["Cloud Inventory"]
+        VULN["Vulnerability Intelligence"]
+        COMPLIANCE["Compliance"]
+        ACTIVITY["Activity Log"]
+        SETTINGS["Workspace Settings"]
+    end
 
-Role
+    subgraph DATA["Security Data"]
+        CLOUDS["AWS / Azure / GCP / Other Clouds"]
+        NVD["NVD"]
+        CISA["CISA KEV"]
+        EVENTS["Workspace Events"]
+    end
 
-HTML5
+    USER --> NAV
+    NAV --> OVERVIEW
+    NAV --> FINDINGS
+    NAV --> INVENTORY
+    NAV --> VULN
+    NAV --> COMPLIANCE
+    NAV --> ACTIVITY
+    NAV --> SETTINGS
 
-Application structure
+    CLOUDS --> INVENTORY
+    CLOUDS --> FINDINGS
+    NVD --> VULN
+    CISA --> VULN
+    EVENTS --> ACTIVITY
 
-CSS3
+    FINDINGS --> OVERVIEW
+    VULN --> OVERVIEW
+    COMPLIANCE --> OVERVIEW
+```
 
-Design system, responsive layout, animations
+---
 
-Vanilla JavaScript
+# 🧰 Tech Stack
 
-UI state and interactions
+<div align="center">
 
-CSS Custom Properties
+<img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white"/>
+<img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white"/>
+<img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=111111"/>
+<img src="https://img.shields.io/badge/Canvas-Analytics-111827?style=for-the-badge"/>
+<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white"/>
+<img src="https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white"/>
 
-Theme/design tokens
+</div>
 
-HTML5 Canvas
+| Layer | Technology | Purpose |
+|---|---|---|
+| UI | HTML5 | Application structure |
+| Styling | CSS3 | Dark design system + responsive layout |
+| Logic | Vanilla JavaScript | State + interactions |
+| Analytics | HTML5 Canvas | Dashboard visualizations |
+| Validation | HTML validation tooling | Quality checks |
+| Deployment | Docker / Nginx | Production-style serving |
 
-Analytics visualizations
+---
 
-Google Fonts
+# ⚡ Quick Start
 
-Typography in the documented baseline
+## 1. Clone
 
-Tooling
-
-Tool
-
-Purpose
-
-Node.js
-
-Local development tooling
-
-serve
-
-Local static server
-
-live-server
-
-Development reload workflow
-
-html-validate
-
-HTML validation
-
-Docker + Nginx
-
-Container deployment
-
-The current repository baseline deliberately avoids React, webpack, Chart.js, D3, or Recharts.
-
-Installation
-
-Prerequisites
-
-Modern browser
-
-Node.js 18+ for the repository's optional development tooling
-
-Git
-
-Clone
-
+```bash
 git clone <YOUR_REPOSITORY_URL>
 cd CloudGuard
+```
 
-Install development tooling
+## 2. Install
 
+```bash
 npm install
+```
 
-Start locally
+## 3. Run
 
+```bash
 npm start
+```
 
-Then open the local server URL shown by the command.
+Then open the local URL printed by the terminal.
 
-Alternative static server
+### Zero-tool fallback
 
+```bash
 python3 -m http.server 8080
+```
 
-Or on Windows:
+Windows:
 
+```powershell
 py -m http.server 8080
+```
 
-NPM Scripts
+---
 
-Command
+# 📁 Project Structure
 
-Purpose
+```text
+CloudGuard/
+│
+├── index.html
+├── README.md
+├── package.json
+│
+├── assets/
+│   └── screenshots/
+│       ├── 01-authentication.png
+│       ├── 02-overview.png
+│       ├── 03-findings.png
+│       ├── 04-cloud-inventory.png
+│       ├── 05-provider-connection.png
+│       ├── 06-vulnerability-intelligence.png
+│       ├── 07-compliance.png
+│       ├── 08-activity-log.png
+│       └── 09-settings.png
+│
+├── docs/
+│   ├── ARCHITECTURE.md
+│   ├── API.md
+│   ├── DEPLOYMENT.md
+│   └── INTEGRATIONS.md
+│
+├── Dockerfile
+├── docker-compose.yml
+├── nginx.conf
+├── SECURITY.md
+├── CONTRIBUTING.md
+└── LICENSE
+```
 
-npm start
+> If a file is not present in your branch, treat the structure above as the intended documentation layout rather than an assertion that every file currently exists.
 
-Start local static server on port 3000
+---
 
-npm run dev
+# 🔌 API Integration
 
-Start live-server development mode
+A backend can expose normalized findings to the workspace through an authenticated API.
 
-npm run preview
-
-Serve on port 8080
-
-npm run validate
-
-Validate index.html
-
-npm run lint:html
-
-Run HTML validation
-
-npm run size
-
-Report index.html size
-
-npm run lines
-
-Count source lines
-
-npm run deploy:vercel
-
-Deploy using Vercel CLI
-
-npm run deploy:netlify
-
-Deploy using Netlify CLI
-
-npm run docker:build
-
-Build CloudGuard container
-
-npm run docker:run
-
-Run CloudGuard container
-
-npm run docker:stop
-
-Stop/remove CloudGuard container
-
-API Integration Example
-
-The repository includes an API integration guide for replacing mock findings with a real backend.
-
-A simplified integration pattern looks like this:
-
-let findings = [];
-
-async function loadFindings(apiUrl, apiKey) {
+```javascript
+async function loadFindings(apiUrl, token) {
   const response = await fetch(`${apiUrl}/v1/findings`, {
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization: `Bearer ${token}`,
       "Content-Type": "application/json"
     }
   });
@@ -513,223 +509,233 @@ async function loadFindings(apiUrl, apiKey) {
   }
 
   const payload = await response.json();
-  findings = payload.data ?? [];
 
-  renderFindings(findings);
+  return payload.data ?? [];
 }
+```
 
-Example finding object
+### Example finding payload
 
+```json
 {
   "id": "CRIT-001",
   "severity": "critical",
-  "cvss_score": 9.8,
   "provider": "aws",
   "service": "s3",
   "resource_name": "prod-media-assets",
   "status": "open",
-  "remediation_summary": "Block public access settings on the bucket"
+  "cvss_score": 9.8
 }
-
-Never hard-code real credentials in frontend source. The repository security guide recommends environment-managed secrets, HTTPS, CSP, and authenticated backend APIs for real deployments.
-
-DevSecOps Example
-
-CloudGuard's documentation includes CI/CD integration patterns. A minimal security gate can follow this model:
-
-name: CloudGuard Security Gate
-
-on:
-  pull_request:
-  push:
-    branches: [main]
-
-jobs:
-  security-scan:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Run CloudGuard scan
-        run: |
-          curl -s -X POST "$CLOUDGUARD_API_URL/v1/scan" \
-            -H "Authorization: Bearer $CLOUDGUARD_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d '{"provider":"aws","scan_type":"quick","fail_on_severity":"critical"}' \
-            > scan-result.json
-
-Use GitHub repository secrets or an equivalent secret manager for credentials.
-
-Docker
-
-The repository contains a lightweight Nginx-based container setup.
-
-npm run docker:build
-npm run docker:run
-
-For a manual build:
-
-docker build -t cloudguard:latest .
-docker run -d -p 8080:80 --name cloudguard cloudguard:latest
-
-Stop it with:
-
-npm run docker:stop
-
-Screenshots
-
-Landing / Authentication
-
-
-
-Security Overview
-
-
-
-Findings
-
-
-
-Cloud Inventory
-
-
-
-Provider Connection
-
-
-
-Vulnerability Intelligence
-
-
-
-Compliance Posture
-
-
-
-Activity Log
-
-
-
-Workspace Settings
-
-
-
-UI Design Language
-
-CloudGuard uses a security-focused visual system built around:
-
-Deep black / navy backgrounds
-
-High-contrast typography
-
-Blue as the primary interaction accent
-
-Green for operational/success states
-
-Amber for warnings
-
-Red for critical exposure
-
-Compact monospace metadata
-
-Subtle borders and layered cards
-
-Dense but readable security tables
-
-Large analytical surfaces
-
-Minimal motion with clear interaction feedback
-
-The design goal is not simply to display data. It is to help an analyst answer:
-
-What is exposed? Why does it matter? What should I investigate next?
-
-Security Principles
-
-CloudGuard's documented security direction includes:
-
-No secrets committed to frontend source
-
-HTTPS for real API communication
-
-Environment-managed credentials
-
-CSP headers for deployed applications
-
-Authentication before exposing real security data
-
-Least-privilege cloud access
-
-Read-only cloud roles where possible
-
-Separation of sample/demo data from production data
-
-Responsible vulnerability disclosure
-
-See SECURITY.md for the repository security policy.
-
-Roadmap
-
-The documented roadmap includes:
-
-WebSocket-based real-time threat feed
-
-Native AWS Security Hub connector
-
-Analytics time-range picker
-
-React + TypeScript migration
-
-Production backend integration
-
-Expanded cloud-provider connectors
-
-Richer remediation workflows
-
-More granular compliance evidence mapping
-
-Roadmap items may change as CloudGuard evolves.
-
-Contributing
-
-Contributions are welcome.
-
-Fork the repository.
-
-Create a feature branch.
-
-Make your change.
-
-Validate the HTML.
-
-Test responsive behavior.
-
-Update documentation where necessary.
-
-Open a pull request with a clear description.
-
-git checkout -b feature/security-improvement
+```
+
+> Never hard-code production credentials in frontend JavaScript. Use a secure backend, environment-managed secrets, least-privilege roles, HTTPS, and proper authentication.
+
+---
+
+# 🧪 Quality Gate
+
+A professional security product should fail loudly when its security assumptions fail.
+
+```text
+HTML validation
+      │
+      ▼
+UI smoke tests
+      │
+      ▼
+API contract checks
+      │
+      ▼
+Dependency audit
+      │
+      ▼
+Secret scanning
+      │
+      ▼
+Security review
+      │
+      ▼
+Deploy 🚀
+```
+
+Recommended local checks:
+
+```bash
+npm audit
+```
+
+```bash
+git diff --check
+```
+
+If your repository includes HTML validation scripts:
+
+```bash
 npm run validate
-git add .
-git commit -m "feat: improve security workspace"
-git push origin feature/security-improvement
+```
 
-See CONTRIBUTING.md for repository contribution guidance.
+---
 
-License
+# 🔐 Security Principles
 
-CloudGuard is released under the MIT License.
+### Least privilege
 
-See LICENSE for the complete license text.
+Cloud connectors should use the minimum permissions required for discovery and security assessment.
+
+### Secret isolation
+
+Never expose provider secrets, private keys, OAuth client secrets, or encryption keys in browser code.
+
+### Tenant isolation
+
+Workspace data should be scoped by authenticated tenant/workspace identity.
+
+### Encryption
+
+Sensitive credentials should be encrypted at rest and transmitted only over HTTPS.
+
+### Auditability
+
+Security-sensitive operations should produce traceable events.
+
+### No blind remediation
+
+Production security tooling should distinguish between **discovering a risk** and **executing a remediation action**.
+
+---
+
+# 🗺️ Roadmap
+
+```text
+[████████████████████] Core UI
+[██████████████████░░] Findings workflows
+[████████████████░░░░] Cloud connectors
+[██████████████░░░░░░] Vulnerability intelligence
+[████████████░░░░░░░░] Compliance automation
+[██████████░░░░░░░░░░] AI security copilot
+[████████░░░░░░░░░░░░] Automated remediation
+```
+
+### Next-level ideas
+
+- [ ] AWS read-only connector
+- [ ] Azure read-only connector
+- [ ] GCP read-only connector
+- [ ] Real-time finding ingestion
+- [ ] CVE enrichment pipeline
+- [ ] CISA KEV correlation
+- [ ] Compliance control mapping
+- [ ] Security graph / attack-path visualization
+- [ ] AI security analyst
+- [ ] Risk-based remediation recommendations
+- [ ] Slack / Teams alerting
+- [ ] GitHub security gates
+- [ ] Multi-tenant RBAC
+
+---
+
+# 🧩 Design System
+
+CloudGuard intentionally uses a **dark security-console language**.
+
+```text
+BACKGROUND      #05080F
+SURFACE         #0A111B
+BORDER          #1A2A3D
+PRIMARY         #4DA3FF
+SUCCESS         #16C784
+WARNING         #F5B84B
+CRITICAL        #FF667A
+TEXT            #F3F7FF
+MUTED           #6F89A8
+```
+
+### UI principles
+
+- High information density without visual clutter
+- Blue as the primary action signal
+- Green for healthy/live state
+- Amber for warning/sample state
+- Red for critical exposure
+- Thin borders instead of heavy shadows
+- Monospace micro-labels for technical context
+- Large typography for security metrics
+- Rounded cards with restrained glow
+
+---
+
+# 📸 Screenshot Wall
 
 <div align="center">
 
-CloudGuard
+<table>
+<tr>
+<td><img src="assets/screenshots/02-overview.png" width="100%" alt="Overview"/></td>
+<td><img src="assets/screenshots/03-findings.png" width="100%" alt="Findings"/></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/04-cloud-inventory.png" width="100%" alt="Cloud Inventory"/></td>
+<td><img src="assets/screenshots/06-vulnerability-intelligence.png" width="100%" alt="Vulnerability Intelligence"/></td>
+</tr>
+<tr>
+<td><img src="assets/screenshots/07-compliance.png" width="100%" alt="Compliance"/></td>
+<td><img src="assets/screenshots/09-settings.png" width="100%" alt="Settings"/></td>
+</tr>
+</table>
 
-Cloud security visibility. Vulnerability intelligence. Operational clarity.
+</div>
 
-Built for security teams that need to see the risk behind every cloud.
+---
+
+# 🤝 Contributing
+
+Pull requests are welcome.
+
+```bash
+git checkout -b feature/your-feature
+git add .
+git commit -m "feat: add your feature"
+git push origin feature/your-feature
+```
+
+Then open a pull request.
+
+### Commit style
+
+```text
+feat:     new feature
+fix:      bug fix
+docs:     documentation
+style:    visual/style changes
+refactor: internal improvement
+security: security hardening
+chore:    maintenance
+```
+
+---
+
+# ⭐ Support the Project
+
+<div align="center">
+
+### If CloudGuard helped you learn, build, or experiment with cloud security:
+
+<img src="https://img.shields.io/badge/⭐-Star%20the%20repo-FFD43B?style=for-the-badge&labelColor=111827"/>
+<img src="https://img.shields.io/badge/🍴-Fork%20it-4DA3FF?style=for-the-badge&labelColor=111827"/>
+<img src="https://img.shields.io/badge/💬-Share%20feedback-16C784?style=for-the-badge&labelColor=111827"/>
+
+<br/><br/>
+
+**Built for people who want to see the risk before the risk becomes an incident.**
+
+</div>
+
+---
+
+<div align="center">
+
+<img src="https://capsule-render.vercel.app/api?type=waving&height=120&section=footer&color=0:0d6efd,50:0b1b33,100:05080f"/>
+
+<sub>CloudGuard 2.0 • Multi-Cloud Security Operations • Security-first by design</sub>
 
 </div>
