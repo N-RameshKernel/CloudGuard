@@ -194,7 +194,7 @@ Test in:
 
 ## 💬 Questions?
 
-Open a [Discussion](https://github.com/nramesh/cloudguard/discussions) for general questions, or email **ramesh@company.io** for private inquiries.
+Open a [Discussion](https://github.com/nramesh/cloudguard/discussions) for general questions, or email **ramesh.n010101@gmail.com** for private inquiries.
 
 ---
 
