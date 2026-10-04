@@ -1,0 +1,3 @@
+import type{CloudConnector,Provider}from'./types.js';import{awsConnector}from'./aws.js';import{azureConnector}from'./azure.js';import{gcpConnector}from'./gcp.js';
+export const connectors=new Map<Provider,CloudConnector>([["aws",awsConnector],["azure",azureConnector],["gcp",gcpConnector]]);
+export const providerCatalog=[{id:'aws',name:'Amazon Web Services',mode:'native'},{id:'azure',name:'Microsoft Azure',mode:'native'},{id:'gcp',name:'Google Cloud',mode:'native'},{id:'oracle',name:'Oracle Cloud Infrastructure',mode:'webhook'},{id:'alibaba',name:'Alibaba Cloud',mode:'webhook'},{id:'ibm',name:'IBM Cloud',mode:'webhook'},{id:'digitalocean',name:'DigitalOcean',mode:'webhook'},{id:'custom',name:'Other cloud / custom',mode:'webhook'}] as const;

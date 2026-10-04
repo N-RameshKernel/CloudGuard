@@ -1,4 +1,3 @@
-[README.md](https://github.com/user-attachments/files/33025527/README.md)
 <div align="center">
 
 <img src="https://capsule-render.vercel.app/api?type=waving&height=180&color=0:05080f,50:0b1b33,100:0d6efd&text=CLOUDGUARD%202.0&fontColor=ffffff&fontSize=48&fontAlignY=38&desc=MULTI-CLOUD%20SECURITY%20OPERATIONS&descAlignY=62&descSize=16&animation=fadeIn" width="100%"/>

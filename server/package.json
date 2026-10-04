@@ -1,0 +1,6 @@
+{
+  "name":"@cloudguard/server","private":true,"version":"2.0.0","type":"module",
+  "scripts":{"dev":"tsx watch src/index.ts","build":"tsc -p tsconfig.json","start":"node dist/index.js","typecheck":"tsc -p tsconfig.json --noEmit","sync:intel":"tsx src/cli/sync-intel.ts"},
+  "dependencies":{"@aws-sdk/client-securityhub":"latest","@aws-sdk/client-sts":"latest","@azure/identity":"latest","connect-mongo":"latest","cors":"latest","dotenv":"latest","express":"latest","express-rate-limit":"latest","express-session":"latest","google-auth-library":"latest","helmet":"latest","mongoose":"latest","node-cron":"latest","openid-client":"latest","zod":"latest"},
+  "devDependencies":{"@types/cors":"latest","@types/express":"latest","@types/express-session":"latest","@types/node":"latest","tsx":"latest","typescript":"latest"}
+}

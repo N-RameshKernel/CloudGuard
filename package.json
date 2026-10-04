@@ -1,0 +1,29 @@
+{
+  "name": "cloudguard-platform",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Multi-cloud security posture and vulnerability intelligence platform",
+  "type": "module",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "npm --workspace server run dev",
+    "dev:web": "node scripts/wait-for-api.mjs",
+    "build": "npm --workspace client run build && npm --workspace server run build",
+    "start": "npm --workspace server run start",
+    "typecheck": "npm --workspace client run typecheck && npm --workspace server run typecheck",
+    "sync:intel": "npm --workspace server run sync:intel"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  }
+}
